@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="hello world, 阿克曼的小陀螺">
+    <meta name="keywords" content="STL容器源码剖析 (vector), 阿克曼的小陀螺">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>hello world | 阿克曼的小陀螺</title>
+    <title>STL容器源码剖析 (vector) | 阿克曼的小陀螺</title>
     <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/awesome/css/all.css">
@@ -262,7 +262,7 @@
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">hello world</h1>
+                    <h1 class="description center-align post-title">STL容器源码剖析 (vector)</h1>
                 </div>
             </div>
         </div>
@@ -313,28 +313,28 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2018-09-07
+                    2021-05-17
                 </div>
                 
 
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
-                    2021-05-15
+                    2021-05-29
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    73
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    10 分
                 </div>
                 
 
@@ -354,19 +354,408 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span>
+                <h1 id="STL容器源码剖析-vector"><a href="#STL容器源码剖析-vector" class="headerlink" title="STL容器源码剖析 (vector)"></a>STL容器源码剖析 (vector)</h1><p>STL在日程编程应用非常的广泛,之前看到一篇大牛文章说，用C++开发，尽量用容器类+迭代器来代替数组+指针，因为数组+指针容易越界，或者内存泄露，相反，容器类和+迭代器都有大神将底层封装好，使用安全简单。</p>
+<p>vector是有序容器里使用最广泛的容器,基本能够支持任何类型的对象，同时也是一个可以动态增长的数组。vector容器有已使用空间和可用空间，已使用空间是指vector容器的大小，可用空间是指vector容器可容纳的最大数据空间capacity。vector的实现依赖于内存的配置和内存的初始化，以及迭代器。其中内存的配置是最重要的，因为每当配置内存空间时，可能会发生数据移动，回收旧的内存空间，如果不断地重复这些操作会降低操作效率，所有vector容器在分配内存时，并不是用户数据占多少就分配多少，它会分配一些内存空间留着备用，即是用户可用空间。关于vector类定义可参考<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector">vector</a>,以下源代码在SGI STL的文件&lt;stl_vector.h&gt;中。</p>
+<h2 id="vector容器的数据结构"><a href="#vector容器的数据结构" class="headerlink" title="vector容器的数据结构"></a>vector容器的数据结构</h2><p>vector使用两个迭代器来管理连续内存空间，分别是指向目前使用空间的头start和指向目前使用空间的尾finish。还有以迭代器end_of_storage作为可用空间的尾。具体如下，</p>
+<pre class=" language-c++"><code class="language-c++">//Alloc是SGI STL的空间配置器，默认是第二级配置器
+template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
+class vector : protected _Vector_base<_Tp, _Alloc> 
+&#123;
+       ...
+protected:
+  _Tp* _M_start;//表示目前使用空间的头
+  _Tp* _M_finish;//表示目前使用空间的尾
+  _Tp* _M_end_of_storage;//表示目前可用空间的尾  
+    ...
+&#125;;
 </code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class=" language-bash"><code class="language-bash">$ hexo server
+<h2 id="vector迭代器"><a href="#vector迭代器" class="headerlink" title="vector迭代器"></a>vector迭代器</h2><p>vector容器维护的空间的线性连续的，所以普通指针也可以作为迭代器。如：operator*，operator-&gt;，operator++，operator–，operator+，operator-，operator+=，operator-=等操作。</p>
+<pre class=" language-c++"><code class="language-c++">//Alloc是SGI STL的空间配置器，默认是第二级配置器
+template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
+class vector : protected _Vector_base<_Tp, _Alloc> 
+&#123;
+  
+public://vector的内嵌型别定义,是iterator_traits<I>服务的类型
+  typedef _Tp value_type;
+  typedef value_type* pointer;
+  typedef const value_type* const_pointer;
+  typedef value_type* iterator;//vector容器的迭代器是普通指针
+  typedef const value_type* const_iterator;
+  ...
+
+  public://以下定义vector迭代器
+  iterator begin() &#123; return _M_start; &#125;//指向已使用空间头的迭代器
+  const_iterator begin() const &#123; return _M_start; &#125;
+  iterator end() &#123; return _M_finish; &#125;//指向已使用空间尾的迭代器
+  const_iterator end() const &#123; return _M_finish; &#125;
+
+  reverse_iterator rbegin()
+    &#123; return reverse_iterator(end()); &#125;
+  const_reverse_iterator rbegin() const
+    &#123; return const_reverse_iterator(end()); &#125;
+  reverse_iterator rend()
+    &#123; return reverse_iterator(begin()); &#125;
+  const_reverse_iterator rend() const
+    &#123; return const_reverse_iterator(begin()); &#125;
+    ...
+&#125;;
 </code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class=" language-bash"><code class="language-bash">$ hexo generate
+<h2 id="vector的构造函数和析构函数"><a href="#vector的构造函数和析构函数" class="headerlink" title="vector的构造函数和析构函数"></a>vector的构造函数和析构函数</h2><p>我们平时定义vector对象是会用到，如 vector<int> vec,vector<char> str(n)等等</p>
+<pre class=" language-c++"><code class="language-c++"> /*以下是vector容器的构造函数***********************
+/************************************
+***    //默认构造函数***************************
+*    explicit vector( const Allocator& alloc = Allocator() );          *
+***    //具有初始值和容器大小的构造函数*******************
+*    explicit vector( size_type count,                                  *
+*              const T& value = T(),                               *
+*              const Allocator& alloc = Allocator());              *
+*      vector( size_type count,                                    *
+*              const T& value,                                     *
+*              const Allocator& alloc = Allocator());              *
+***    //只有容器大小的构造函数***********************
+*    explicit vector( size_type count );                               *
+***    //用两个迭代器区间表示容器大小的构造函数***************
+*    template< class InputIt >                                         *
+*    vector( InputIt first, InputIt last,                              *
+*     const Allocator& alloc = Allocator() );                      *  
+***    //拷贝构造函数***************************
+*    vector( const vector& other );                                    *
+*    vector( const vector& other, const Allocator& alloc );            * 
+***    //移动构造函数***************************
+*    vector( vector&& other );                                         *
+*    vector( vector&& other, const Allocator& alloc );                 *
+***    //用初始列表的值构造容器，列表内的元素值可以不同***********
+*    vector( std::initializer_list<T> init,                            *
+*     const Allocator& alloc = Allocator() );                      *
+*************************************/ 
+  explicit vector(const allocator_type& __a = allocator_type())
+    : _Base(__a) &#123;&#125;//默认构造函数
+
+  vector(size_type __n, const _Tp& __value,
+         const allocator_type& __a = allocator_type()) 
+    : _Base(__n, __a)//构造函数，里面包含n个初始值为value的元素
+    //全局函数，填充值函数，即从地址M_start开始连续填充n个初始值为value的元素
+    &#123; _M_finish = uninitialized_fill_n(_M_start, __n, __value); &#125;
+
+  explicit vector(size_type __n)//该构造函数不接受初始值，只接受容易包含元素的个数n
+    : _Base(__n, allocator_type())
+    &#123; _M_finish = uninitialized_fill_n(_M_start, __n, _Tp()); &#125;
+
+  vector(const vector<_Tp, _Alloc>& __x) 
+    : _Base(__x.size(), __x.get_allocator())//拷贝构造函数
+    &#123; _M_finish = uninitialized_copy(__x.begin(), __x.end(), _M_start); &#125;
+
+#ifdef __STL_MEMBER_TEMPLATES
+  // Check whether it's an integral type.  If so, it's not an iterator.
+  /*这个是某个区间的构造函数，首先判断输入是否为整数_Integral()
+  *采用__type_traits技术
+  */
+  template <class _InputIterator>
+  vector(_InputIterator __first, _InputIterator __last,
+         const allocator_type& __a = allocator_type()) : _Base(__a) &#123;
+    typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
+    _M_initialize_aux(__first, __last, _Integral());
+  &#125;
+
+  template <class _Integer>
+  //若输入为整数，则调用该函数
+  void _M_initialize_aux(_Integer __n, _Integer __value, __true_type) &#123;
+    _M_start = _M_allocate(__n);
+    _M_end_of_storage = _M_start + __n; 
+    _M_finish = uninitialized_fill_n(_M_start, __n, __value);
+  &#125;
+
+  template <class _InputIterator>
+  //若输入不是整数，则采用Traits技术继续判断迭代器的类型
+  void _M_initialize_aux(_InputIterator __first, _InputIterator __last,
+                         __false_type) &#123;
+    _M_range_initialize(__first, __last, __ITERATOR_CATEGORY(__first));
+  &#125;
+
+#else
+  vector(const _Tp* __first, const _Tp* __last,
+         const allocator_type& __a = allocator_type())
+    : _Base(__last - __first, __a) 
+    &#123; _M_finish = uninitialized_copy(__first, __last, _M_start); &#125;
+#endif /* __STL_MEMBER_TEMPLATES */
+
+  ~vector() &#123; destroy(_M_start, _M_finish); &#125;//析构函数
 </code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class=" language-bash"><code class="language-bash">$ hexo deploy
+<h2 id="vector的成员函数"><a href="#vector的成员函数" class="headerlink" title="vector的成员函数"></a>vector的成员函数</h2><p>vector的方法，如push_back(x),pop_back(),insert()等等</p>
+<pre class=" language-c++"><code class="language-c++">    /*以下是容器的一些成员函数*/
+  size_type size() const//vector容器大小(已使用空间大小)，即容器内存储元素的个数
+    &#123; return size_type(end() - begin()); &#125;
+  size_type max_size() const//返回可容纳最大元素数
+    &#123; return size_type(-1) / sizeof(_Tp); &#125;
+  size_type capacity() const//vector容器可用空间的大小
+    &#123; return size_type(_M_end_of_storage - begin()); &#125;
+  bool empty() const//判断容器是否为空
+    &#123; return begin() == end(); &#125;
+
+  reference operator[](size_type __n) &#123; return *(begin() + __n); &#125;//返回指定位置的元素
+  const_reference operator[](size_type __n) const &#123; return *(begin() + __n); &#125;
+
+#ifdef __STL_THROW_RANGE_ERRORS
+  //若用户要求的空间大于可用空间，抛出错去信息，即越界检查
+  void _M_range_check(size_type __n) const &#123;
+    if (__n >= this->size())
+      __stl_throw_range_error("vector");
+  &#125;
+
+  reference at(size_type __n)//访问指定元素，并且进行越界检查
+    &#123; _M_range_check(__n); return (*this)[__n]; &#125;//访问前，先进行越界检查
+  const_reference at(size_type __n) const
+    &#123; _M_range_check(__n); return (*this)[__n]; &#125;
+#endif /* __STL_THROW_RANGE_ERRORS */
+
+    void reserve(size_type __n) &#123;//改变可用空间内存大小
+    if (capacity() < __n) &#123;
+      const size_type __old_size = size();
+      //重新分配大小为n的内存空间，并把原来数据复制到新分配空间
+      iterator __tmp = _M_allocate_and_copy(__n, _M_start, _M_finish);
+      destroy(_M_start, _M_finish);//释放容器元素对象
+      _M_deallocate(_M_start, _M_end_of_storage - _M_start);//回收原来的内存空间
+      //调整迭代器所指的地址,因为原来迭代器所指的地址已经失效
+      _M_start = __tmp;
+      _M_finish = __tmp + __old_size;
+      _M_end_of_storage = _M_start + __n;
+    &#125;
+  &#125;
+
+  reference front() &#123; return *begin(); &#125;//返回第一个元素
+  const_reference front() const &#123; return *begin(); &#125;
+  reference back() &#123; return *(end() - 1); &#125;//返回容器最后一个元素
+  const_reference back() const &#123; return *(end() - 1); &#125;
+
+  void push_back(const _Tp& __x) &#123;//在最尾端插入元素
+    if (_M_finish != _M_end_of_storage) &#123;//若有可用的内存空间
+      construct(_M_finish, __x);//构造对象
+      ++_M_finish;
+    &#125;
+    else//若没有可用的内存空间,调用以下函数，把x插入到指定位置
+      _M_insert_aux(end(), __x);
+  &#125;
+  void push_back() &#123;
+    if (_M_finish != _M_end_of_storage) &#123;
+      construct(_M_finish);
+      ++_M_finish;
+    &#125;
+    else
+      _M_insert_aux(end());
+  &#125;
+  void swap(vector<_Tp, _Alloc>& __x) &#123;
+      /*交换容器的内容
+      *这里使用的方法是交换迭代器所指的地址
+      */
+    __STD::swap(_M_start, __x._M_start);
+    __STD::swap(_M_finish, __x._M_finish);
+    __STD::swap(_M_end_of_storage, __x._M_end_of_storage);
+  &#125;
+
+  iterator insert(iterator __position, const _Tp& __x) &#123;//把x值插入到指定的位置
+    size_type __n = __position - begin();
+    if (_M_finish != _M_end_of_storage && __position == end()) &#123;
+      construct(_M_finish, __x);
+      ++_M_finish;
+    &#125;
+    else
+      _M_insert_aux(__position, __x);
+    return begin() + __n;
+  &#125;
+  iterator insert(iterator __position) &#123;
+    size_type __n = __position - begin();
+    if (_M_finish != _M_end_of_storage && __position == end()) &#123;
+      construct(_M_finish);
+      ++_M_finish;
+    &#125;
+    else
+      _M_insert_aux(__position);
+    return begin() + __n;
+  &#125;
+
+  void insert (iterator __pos, size_type __n, const _Tp& __x)
+    &#123; //在pos位置连续插入n个初始值为x的元素
+        _M_fill_insert(__pos, __n, __x); &#125;
+
+  void _M_fill_insert (iterator __pos, size_type __n, const _Tp& __x);
+
+  void pop_back() &#123;//取出最尾端元素
+    --_M_finish;
+    destroy(_M_finish);//析构对象
+  &#125;
+  iterator erase(iterator __position) &#123;//擦除指定位置元素
+    if (__position + 1 != end())
+      copy(__position + 1, _M_finish, __position);//后续元素前移一位
+    --_M_finish;
+    destroy(_M_finish);//析构对象
+    return __position;
+  &#125;
+  iterator erase(iterator __first, iterator __last) &#123;//擦除两个迭代器区间的元素
+    iterator __i = copy(__last, _M_finish, __first);//把不擦除的元素前移
+    destroy(__i, _M_finish);//析构对象
+    _M_finish = _M_finish - (__last - __first);//调整finish的所指的位置
+    return __first;
+  &#125;
+
+  void resize(size_type __new_size, const _Tp& __x) &#123;//改变容器中可存储的元素个数，并不会分配新的空间
+    if (__new_size < size()) //若调整后的内存空间比原来的小
+      erase(begin() + __new_size, end());//擦除多余的元素
+    else
+      insert(end(), __new_size - size(), __x);//比原来多余的空间都赋予初值x
+  &#125;
+  void resize(size_type __new_size) &#123; resize(__new_size, _Tp()); &#125;
+  void clear() &#123; erase(begin(), end()); &#125;//清空容器
+     // assign(), a generalized assignment member function.  Two
+  // versions: one that takes a count, and one that takes a range.
+  // The range version is a member template, so we dispatch on whether
+  // or not the type is an integer.
+
+  /*该函数有两种类型：
+    void assign( size_type count, const T& value );
+
+    template< class InputIt >
+    void assign( InputIt first, InputIt last );
+    */
+
+  //把容器内容替换为n个初始值为value
+  void assign(size_type __n, const _Tp& __val) &#123; _M_fill_assign(__n, __val); &#125;
+  void _M_fill_assign(size_type __n, const _Tp& __val);
+
+#ifdef __STL_MEMBER_TEMPLATES
+  
+  template <class _InputIterator>
+  void assign(_InputIterator __first, _InputIterator __last) &#123;
+    typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
+    _M_assign_dispatch(__first, __last, _Integral());
+  &#125;
+
+  template <class _Integer>
+  void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
+    &#123; _M_fill_assign((size_type) __n, (_Tp) __val); &#125;
+
+  template <class _InputIter>
+  void _M_assign_dispatch(_InputIter __first, _InputIter __last, __false_type)
+    &#123; _M_assign_aux(__first, __last, __ITERATOR_CATEGORY(__first)); &#125;
+
+  template <class _InputIterator>
+  void _M_assign_aux(_InputIterator __first, _InputIterator __last,
+                     input_iterator_tag);
+
+  template <class _ForwardIterator>
+  void _M_assign_aux(_ForwardIterator __first, _ForwardIterator __last,
+                     forward_iterator_tag); 
+
+#endif /* __STL_MEMBER_TEMPLATES */
 </code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<p>其中特别的是：iterator erase(iterator __first, iterator __last)函数只是擦除输入迭代器之间的元素，但是没有回收内存空间，只是把内存空间作为备用空间。<br>void insert (iterator __pos, size_type __n, const _Tp&amp; __x)函数插入元素是在指定位置position上连续插入n个初始值为x的元素，根据插入元素个数和可用空间大小的比较，分别进行不同的初始化，详细见源码分析。</p>
+<h2 id="vector的操作符重载"><a href="#vector的操作符重载" class="headerlink" title="vector的操作符重载"></a>vector的操作符重载</h2><p>如 =, !=, ==, &lt;, &gt;等等</p>
+<pre class=" language-c++"><code class="language-c++">template <class _Tp, class _Alloc>
+inline bool //操作符重载，判断两个容器是否相等，即容器大小和容器内容是否都相等
+operator==(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+&#123;
+  return __x.size() == __y.size() &&
+         equal(__x.begin(), __x.end(), __y.begin());
+  /*STL中equal函数的实现如下：
+    * template<class InputIt1, class InputIt2>
+    * bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2)
+    * &#123;
+    *    for (; first1 != last1; ++first1, ++first2) 
+    *    &#123;
+    *        if (!(*first1 == *first2)) 
+    *        &#123;
+    *            return false;
+    *        &#125;
+    *    &#125;
+    *    return true;
+    * &#125;  
+  */
+&#125;
+
+template <class _Tp, class _Alloc>
+inline bool 
+operator<(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+&#123;
+  /*函数原型：
+    template<class InputIt1, class InputIt2>
+    bool lexicographical_compare(InputIt1 first1, InputIt1 last1,
+                             InputIt2 first2, InputIt2 last2)
+    &#123;
+        for ( ; (first1 != last1) && (first2 != last2); first1++, first2++ ) &#123;
+            if (*first1 < *first2) return true;
+            if (*first2 < *first1) return false;
+            &#125;
+        return (first1 == last1) && (first2 != last2);
+    &#125;
+      */
+    return lexicographical_compare(__x.begin(), __x.end(), 
+                                 __y.begin(), __y.end());
+&#125;
+
+#ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
+
+template <class _Tp, class _Alloc>
+inline void swap(vector<_Tp, _Alloc>& __x, vector<_Tp, _Alloc>& __y)
+&#123;
+  __x.swap(__y);
+&#125;
+
+template <class _Tp, class _Alloc>
+inline bool
+operator!=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+  return !(__x == __y);
+&#125;
+
+template <class _Tp, class _Alloc>
+inline bool
+operator>(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+  return __y < __x;
+&#125;
+
+template <class _Tp, class _Alloc>
+inline bool
+operator<=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+  return !(__y < __x);
+&#125;
+
+template <class _Tp, class _Alloc>
+inline bool
+operator>=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+  return !(__x < __y);
+&#125;
+
+#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
+
+template <class _Tp, class _Alloc>
+vector<_Tp,_Alloc>& 
+vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
+&#123;
+  if (&__x != this) &#123;
+    const size_type __xlen = __x.size();
+    if (__xlen > capacity()) &#123;
+      iterator __tmp = _M_allocate_and_copy(__xlen, __x.begin(), __x.end());
+      destroy(_M_start, _M_finish);
+      _M_deallocate(_M_start, _M_end_of_storage - _M_start);
+      _M_start = __tmp;
+      _M_end_of_storage = _M_start + __xlen;
+    &#125;
+    else if (size() >= __xlen) &#123;
+      iterator __i = copy(__x.begin(), __x.end(), begin());
+      destroy(__i, _M_finish);
+    &#125;
+    else &#123;
+      copy(__x.begin(), __x.begin() + size(), _M_start);
+      uninitialized_copy(__x.begin() + size(), __x.end(), _M_finish);
+    &#125;
+    _M_finish = _M_start + __xlen;
+  &#125;
+  return *this;
+&#125;
+</code></pre>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>vector的各种操作其实离不开四个操作，堆内存的申请和释放对象的创建和摧毁</li>
+<li>对vector执行插入删除操作，此时的迭代器是不安全的，需要重新获取，如果引起了新的空间配置 那么指向vector的所有迭代器都会失效。</li>
+<li>当调用erase函数时，size()函数会变化，capacity不会发生变化。</li>
+</ul>
 
                 
             </div>
@@ -393,7 +782,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2018/09/07/hello-world/">http://example.com/2018/09/07/hello-world/</a>
+                    <a href="http://example.com/2021/05/17/vector/">http://example.com/2021/05/17/vector/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -482,9 +871,10 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/05/17/vector/">
                     <div class="card-image">
@@ -501,9 +891,9 @@
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-05-17
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-05-17
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -516,6 +906,7 @@
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -535,7 +926,7 @@
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/2018/09/07/hello-world/">
@@ -568,7 +959,6 @@
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
