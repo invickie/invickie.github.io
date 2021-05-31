@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="STL容器源码剖析 (vector), 阿克曼的小陀螺">
+    <meta name="keywords" content="STL容器源码剖析 (list), 阿克曼的小陀螺">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>STL容器源码剖析 (vector) | 阿克曼的小陀螺</title>
+    <title>STL容器源码剖析 (list) | 阿克曼的小陀螺</title>
     <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/awesome/css/all.css">
@@ -257,12 +257,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-832852.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-8ogod1.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">STL容器源码剖析 (vector)</h1>
+                    <h1 class="description center-align post-title">STL容器源码剖析 (list)</h1>
                 </div>
             </div>
         </div>
@@ -309,7 +309,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2021-05-17
+                    2021-05-31
                 </div>
                 
 
@@ -323,14 +323,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.4k
+                    3.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    10 分
+                    14 分
                 </div>
                 
 
@@ -350,407 +350,612 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="STL容器源码剖析-vector"><a href="#STL容器源码剖析-vector" class="headerlink" title="STL容器源码剖析 (vector)"></a>STL容器源码剖析 (vector)</h1><p>STL在日程编程应用非常的广泛,之前看到一篇大牛文章说，用C++开发，尽量用容器类+迭代器来代替数组+指针，因为数组+指针容易越界，或者内存泄露，相反，容器类和+迭代器都有大神将底层封装好，使用安全简单。</p>
-<p>vector是有序容器里使用最广泛的容器,基本能够支持任何类型的对象，同时也是一个可以动态增长的数组。vector容器有已使用空间和可用空间，已使用空间是指vector容器的大小，可用空间是指vector容器可容纳的最大数据空间capacity。vector的实现依赖于内存的配置和内存的初始化，以及迭代器。其中内存的配置是最重要的，因为每当配置内存空间时，可能会发生数据移动，回收旧的内存空间，如果不断地重复这些操作会降低操作效率，所有vector容器在分配内存时，并不是用户数据占多少就分配多少，它会分配一些内存空间留着备用，即是用户可用空间。关于vector类定义可参考<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector">vector</a>,以下源代码在SGI STL的文件&lt;stl_vector.h&gt;中。</p>
-<h2 id="vector容器的数据结构"><a href="#vector容器的数据结构" class="headerlink" title="vector容器的数据结构"></a>vector容器的数据结构</h2><p>vector使用两个迭代器来管理连续内存空间，分别是指向目前使用空间的头start和指向目前使用空间的尾finish。还有以迭代器end_of_storage作为可用空间的尾。具体如下，</p>
-<pre class=" language-c++"><code class="language-c++">//Alloc是SGI STL的空间配置器，默认是第二级配置器
+                <h1 id="STL容器源码剖析-list"><a href="#STL容器源码剖析-list" class="headerlink" title="STL容器源码剖析 (list)"></a>STL容器源码剖析 (list)</h1><p>STL在日程编程应用非常的广泛,之前看到一篇大牛文章说，用C++开发，尽量用容器类+迭代器来代替数组+指针，因为数组+指针容易越界，或者内存泄露，相反，容器类和+迭代器都有大神将底层封装好，使用安全简单。</p>
+<p>list容器是一个循环的双向链表,list容器的内存空间不一定是连续存储，内存之间是采用迭代器或节点指针进行连接，并且在插入或删除数据节点时，就配置或释放一个数据节点，并不会分配额外的内存空间。</p>
+<p>与vector容器不同的是，list容器在进行插入操作或拼接操作时，迭代器并不会失效；且不能以普通指针作为迭代器，因为普通指针的+或-操作只能指向连续空间的后移地址或前移个地址，不能保证指向list的下一个节点，迭代器必须是双向迭代器，因为list容器具备有前移和后移的能力。对于list容器类的详细信息可以查看<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list">list</a></p>
+<h2 id="list节点和list数据结构"><a href="#list节点和list数据结构" class="headerlink" title="list节点和list数据结构"></a>list节点和list数据结构</h2><p>在list容器中，list本身和list节点是分开设计的，list节点结构源码如下：</p>
+<pre class=" language-c++"><code class="language-c++">struct _List_node_base &#123;
+  _List_node_base* _M_next;//后继节点
+  _List_node_base* _M_prev;//前驱节点
+&#125;;
+
+template <class _Tp>
+struct _List_node : public _List_node_base &#123;
+  _Tp _M_data;//节点存储的数据
+&#125;;
+</code></pre>
+<p>list容器本身是循环双向链表，源码如下：</p>
+<pre class=" language-c++"><code class="language-c++">//以下是双向链表list类的定义，分配器_Alloc默认为第二级配置器
 template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
-class vector : protected _Vector_base<_Tp, _Alloc> 
-&#123;
-       ...
+class list : protected _List_base<_Tp, _Alloc> &#123; 
+     ...
+public:
+    typedef _List_node<_Tp> _Node;
 protected:
-  _Tp* _M_start;//表示目前使用空间的头
-  _Tp* _M_finish;//表示目前使用空间的尾
-  _Tp* _M_end_of_storage;//表示目前可用空间的尾  
+    //指向链表节点指针
+    _List_node<_Tp>* _M_node;
     ...
 &#125;;
 </code></pre>
-<h2 id="vector迭代器"><a href="#vector迭代器" class="headerlink" title="vector迭代器"></a>vector迭代器</h2><p>vector容器维护的空间的线性连续的，所以普通指针也可以作为迭代器。如：operator*，operator-&gt;，operator++，operator–，operator+，operator-，operator+=，operator-=等操作。</p>
-<pre class=" language-c++"><code class="language-c++">//Alloc是SGI STL的空间配置器，默认是第二级配置器
-template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
-class vector : protected _Vector_base<_Tp, _Alloc> 
-&#123;
-  
-public://vector的内嵌型别定义,是iterator_traits<I>服务的类型
+<h2 id="list容器的迭代器"><a href="#list容器的迭代器" class="headerlink" title="list容器的迭代器"></a>list容器的迭代器</h2><p>list容器的迭代器是双向迭代器，这也是导致list容器的排序成员函数sort()不能使用STL算法中的排序函数，因为STL中的排序算法接受的迭代器是随机访问迭代器；list容器在进行插入和拼接操作时迭代器不会失效,源码如下：</p>
+<pre class=" language-c++"><code class="language-c++">//链表List_iterator_base的迭代器
+struct _List_iterator_base &#123;
+    //数据类型
+  typedef size_t                     size_type;
+  typedef ptrdiff_t                  difference_type;
+  //list迭代器的类型是双向迭代器bidirectional_iterator
+  typedef bidirectional_iterator_tag iterator_category;
+
+  //定义指向链表节点的指针
+  _List_node_base* _M_node;
+
+  //构造函数
+  _List_iterator_base(_List_node_base* __x) : _M_node(__x) &#123;&#125;
+  _List_iterator_base() &#123;&#125;
+
+  //更新节点指针，指向直接前驱或直接后继节点
+  void _M_incr() &#123; _M_node = _M_node->_M_next; &#125;
+  void _M_decr() &#123; _M_node = _M_node->_M_prev; &#125;
+
+  //操作符重载
+  bool operator==(const _List_iterator_base& __x) const &#123;
+    return _M_node == __x._M_node;
+  &#125;
+  bool operator!=(const _List_iterator_base& __x) const &#123;
+    return _M_node != __x._M_node;
+  &#125;
+&#125;;  
+
+//链表List_iterator的迭代器
+template<class _Tp, class _Ref, class _Ptr>
+struct _List_iterator : public _List_iterator_base &#123;
+  typedef _List_iterator<_Tp,_Tp&,_Tp*>             iterator;
+  typedef _List_iterator<_Tp,const _Tp&,const _Tp*> const_iterator;
+  typedef _List_iterator<_Tp,_Ref,_Ptr>             _Self;
+
   typedef _Tp value_type;
-  typedef value_type* pointer;
-  typedef const value_type* const_pointer;
-  typedef value_type* iterator;//vector容器的迭代器是普通指针
-  typedef const value_type* const_iterator;
-  ...
+  typedef _Ptr pointer;
+  typedef _Ref reference;
+  typedef _List_node<_Tp> _Node;
 
-  public://以下定义vector迭代器
-  iterator begin() &#123; return _M_start; &#125;//指向已使用空间头的迭代器
-  const_iterator begin() const &#123; return _M_start; &#125;
-  iterator end() &#123; return _M_finish; &#125;//指向已使用空间尾的迭代器
-  const_iterator end() const &#123; return _M_finish; &#125;
+  //构造函数
+  _List_iterator(_Node* __x) : _List_iterator_base(__x) &#123;&#125;
+  _List_iterator() &#123;&#125;
+  _List_iterator(const iterator& __x) : _List_iterator_base(__x._M_node) &#123;&#125;
 
-  reverse_iterator rbegin()
+  //基本操作符的重载,取出节点数据
+  reference operator*() const &#123; return ((_Node*) _M_node)->_M_data; &#125;
+
+#ifndef __SGI_STL_NO_ARROW_OPERATOR
+  pointer operator->() const &#123; return &(operator*()); &#125;
+#endif /* __SGI_STL_NO_ARROW_OPERATOR */
+
+  _Self& operator++() &#123; 
+    this->_M_incr();
+    return *this;
+  &#125;
+  _Self operator++(int) &#123; 
+    _Self __tmp = *this;
+    this->_M_incr();
+    return __tmp;
+  &#125;
+  _Self& operator--() &#123; 
+    this->_M_decr();
+    return *this;
+  &#125;
+  _Self operator--(int) &#123; 
+    _Self __tmp = *this;
+    this->_M_decr();
+    return __tmp;
+  &#125;
+&#125;;
+
+#ifndef __STL_CLASS_PARTIAL_SPECIALIZATION
+
+//返回迭代器的类型
+inline bidirectional_iterator_tag
+iterator_category(const _List_iterator_base&)
+&#123;
+  return bidirectional_iterator_tag();
+&#125;
+
+template <class _Tp, class _Ref, class _Ptr>
+inline _Tp*
+value_type(const _List_iterator<_Tp, _Ref, _Ptr>&)
+&#123;
+  return 0;
+&#125;
+
+inline ptrdiff_t*
+distance_type(const _List_iterator_base&)
+&#123;
+  return 0;
+&#125;
+
+#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */
+</code></pre>
+<h2 id="list容器的构造函数和析构函数"><a href="#list容器的构造函数和析构函数" class="headerlink" title="list容器的构造函数和析构函数"></a>list容器的构造函数和析构函数</h2><p>我们平时定义list对象是会用到，如 list<int> list等等</p>
+<pre class=" language-c++"><code class="language-c++">//双向链表list类的定义，分配器_Alloc默认为第二级配置器
+template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
+class list : protected _List_base<_Tp, _Alloc> &#123; 
+     ...
+public:
+ //************************************
+  /*************以下是构造函数******************
+  //***********默认构造函数*********************
+    explicit list( const Allocator& alloc = Allocator() );
+  //************具有初值和大小的构造函数************
+    explicit list( size_type count,
+               const T& value = T(),
+               const Allocator& alloc = Allocator());
+         list( size_type count,
+               const T& value,
+               const Allocator& alloc = Allocator());
+  //********只有大小的构造函数********************
+    explicit list( size_type count );
+  //******某个范围的值为初始值的构造函数**************
+    template< class InputIt >
+    list( InputIt first, InputIt last,
+      const Allocator& alloc = Allocator() );
+ //******拷贝构造函数*************************
+    list( const list& other );
+  */
+  //************************************
+  //构造函数
+  //链表的默认构造函数
+  explicit list(const allocator_type& __a = allocator_type()) : _Base(__a) &#123;&#125;
+  list(size_type __n, const _Tp& __value,
+       const allocator_type& __a = allocator_type())
+    : _Base(__a)
+    &#123; insert(begin(), __n, __value); &#125;
+  explicit list(size_type __n)
+    : _Base(allocator_type())
+    &#123; insert(begin(), __n, _Tp()); &#125;
+
+#ifdef __STL_MEMBER_TEMPLATES
+  
+  //我们在这里不需要任何调用技巧，因为insert可以完成所有
+  template <class _InputIterator>
+  list(_InputIterator __first, _InputIterator __last,
+       const allocator_type& __a = allocator_type())
+    : _Base(__a)
+    &#123; insert(begin(), __first, __last); &#125;
+
+#else /* __STL_MEMBER_TEMPLATES */
+
+  list(const _Tp* __first, const _Tp* __last,
+       const allocator_type& __a = allocator_type())
+    : _Base(__a)
+    &#123; this->insert(begin(), __first, __last); &#125;
+  list(const_iterator __first, const_iterator __last,
+       const allocator_type& __a = allocator_type())
+    : _Base(__a)
+    &#123; this->insert(begin(), __first, __last); &#125;
+
+#endif /* __STL_MEMBER_TEMPLATES */
+  list(const list<_Tp, _Alloc>& __x) : _Base(__x.get_allocator())
+    &#123; insert(begin(), __x.begin(), __x.end()); &#125;//拷贝构造函数
+
+  ~list() &#123; &#125;//析构函数
+
+  //赋值操作
+  list<_Tp, _Alloc>& operator=(const list<_Tp, _Alloc>& __x);
+  //***********************************
+    ...
+&#125;;
+
+list容器的成员函数
+---
+
+如插入insert()、擦除erase()、拼接splice()等等
+
+```c++
+//双向链表list类的定义，分配器_Alloc默认为第二级配置器
+template <class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) >
+class list : protected _List_base<_Tp, _Alloc> &#123;
+  // requirements:
+
+    ...
+
+protected:
+    //创建值为x的节点，并返回该节点的地址
+  _Node* _M_create_node(const _Tp& __x)
+  &#123;
+    _Node* __p = _M_get_node();//分配一个节点空间
+    __STL_TRY &#123;//把x值赋予指定的地址，即是data值
+      _Construct(&__p->_M_data, __x);
+    &#125;
+    __STL_UNWIND(_M_put_node(__p));
+    return __p;//返回节点地址
+  &#125;
+
+  //创建默认值的节点
+  _Node* _M_create_node()
+  &#123;
+    _Node* __p = _M_get_node();
+    __STL_TRY &#123;
+      _Construct(&__p->_M_data);
+    &#125;
+    __STL_UNWIND(_M_put_node(__p));
+    return __p;
+  &#125;
+
+public:
+    
+
+  //以下是迭代器的定义
+  iterator begin()             &#123; return (_Node*)(_M_node->_M_next); &#125;
+  const_iterator begin() const &#123; return (_Node*)(_M_node->_M_next); &#125;
+
+  iterator end()             &#123; return _M_node; &#125;
+  const_iterator end() const &#123; return _M_node; &#125;
+
+  reverse_iterator rbegin() 
     &#123; return reverse_iterator(end()); &#125;
-  const_reverse_iterator rbegin() const
+  const_reverse_iterator rbegin() const 
     &#123; return const_reverse_iterator(end()); &#125;
+
   reverse_iterator rend()
     &#123; return reverse_iterator(begin()); &#125;
   const_reverse_iterator rend() const
     &#123; return const_reverse_iterator(begin()); &#125;
-    ...
-&#125;;
-</code></pre>
-<h2 id="vector的构造函数和析构函数"><a href="#vector的构造函数和析构函数" class="headerlink" title="vector的构造函数和析构函数"></a>vector的构造函数和析构函数</h2><p>我们平时定义vector对象是会用到，如 vector<int> vec,vector<char> str(n)等等</p>
-<pre class=" language-c++"><code class="language-c++"> /*以下是vector容器的构造函数***********************
-/************************************
-***    //默认构造函数***************************
-*    explicit vector( const Allocator& alloc = Allocator() );          *
-***    //具有初始值和容器大小的构造函数*******************
-*    explicit vector( size_type count,                                  *
-*              const T& value = T(),                               *
-*              const Allocator& alloc = Allocator());              *
-*      vector( size_type count,                                    *
-*              const T& value,                                     *
-*              const Allocator& alloc = Allocator());              *
-***    //只有容器大小的构造函数***********************
-*    explicit vector( size_type count );                               *
-***    //用两个迭代器区间表示容器大小的构造函数***************
-*    template< class InputIt >                                         *
-*    vector( InputIt first, InputIt last,                              *
-*     const Allocator& alloc = Allocator() );                      *  
-***    //拷贝构造函数***************************
-*    vector( const vector& other );                                    *
-*    vector( const vector& other, const Allocator& alloc );            * 
-***    //移动构造函数***************************
-*    vector( vector&& other );                                         *
-*    vector( vector&& other, const Allocator& alloc );                 *
-***    //用初始列表的值构造容器，列表内的元素值可以不同***********
-*    vector( std::initializer_list<T> init,                            *
-*     const Allocator& alloc = Allocator() );                      *
-*************************************/ 
-  explicit vector(const allocator_type& __a = allocator_type())
-    : _Base(__a) &#123;&#125;//默认构造函数
 
-  vector(size_type __n, const _Tp& __value,
-         const allocator_type& __a = allocator_type()) 
-    : _Base(__n, __a)//构造函数，里面包含n个初始值为value的元素
-    //全局函数，填充值函数，即从地址M_start开始连续填充n个初始值为value的元素
-    &#123; _M_finish = uninitialized_fill_n(_M_start, __n, __value); &#125;
+  //判断链表是否为空链表
+  bool empty() const &#123; return _M_node->_M_next == _M_node; &#125;
+ 
+  //返回链表的大小
+  size_type size() const &#123;
+    size_type __result = 0;
+    //返回两个迭代器之间的距离
+    distance(begin(), end(), __result);
+    //返回链表的元素个数
+    return __result;
+  &#125;
+  size_type max_size() const &#123; return size_type(-1); &#125;
 
-  explicit vector(size_type __n)//该构造函数不接受初始值，只接受容易包含元素的个数n
-    : _Base(__n, allocator_type())
-    &#123; _M_finish = uninitialized_fill_n(_M_start, __n, _Tp()); &#125;
+  //返回第一个节点数据的引用，reference相当于value_type&
+  reference front() &#123; return *begin(); &#125;
+  const_reference front() const &#123; return *begin(); &#125;
+  //返回最后一个节点数据的引用
+  reference back() &#123; return *(--end()); &#125;
+  const_reference back() const &#123; return *(--end()); &#125;
 
-  vector(const vector<_Tp, _Alloc>& __x) 
-    : _Base(__x.size(), __x.get_allocator())//拷贝构造函数
-    &#123; _M_finish = uninitialized_copy(__x.begin(), __x.end(), _M_start); &#125;
+  //交换链表容器的内容
+  void swap(list<_Tp, _Alloc>& __x) &#123; __STD::swap(_M_node, __x._M_node); &#125;
+
+ //************************************
+ //***********插入节点*********************
+  /**********以下是插入节点函数的原型，也是公共接口********
+    //在指定的位置pos之前插入值为value的数据节点
+    iterator insert( iterator pos, const T& value );
+    iterator insert( const_iterator pos, const T& value );
+
+    //在指定的位置pos之前插入n个值为value的数据节点
+    void insert( iterator pos, size_type count, const T& value );
+    iterator insert( const_iterator pos, size_type count, const T& value );
+
+    //在指定的位置pos之前插入[first,last)之间的数据节点
+    template< class InputIt >
+    void insert( iterator pos, InputIt first, InputIt last);
+    template< class InputIt >
+    iterator insert( const_iterator pos, InputIt first, InputIt last );
+  *************************************/
+  /**在整个链表的操作中，插入操作是非常重要的，很多成员函数会调用该函数**/
+//*************************************
+  //在指定的位置插入初始值为x的节点
+  iterator insert(iterator __position, const _Tp& __x) &#123;
+      //首先创建一个初始值为x的节点，并返回该节点的地址
+    _Node* __tmp = _M_create_node(__x);
+    //调整节点指针，把新节点插入到指定位置
+    __tmp->_M_next = __position._M_node;
+    __tmp->_M_prev = __position._M_node->_M_prev;
+    __position._M_node->_M_prev->_M_next = __tmp;
+    __position._M_node->_M_prev = __tmp;
+    //返回新节点地址
+    return __tmp;
+  &#125;
+  //在指定的位置插入为默认值的节点
+  iterator insert(iterator __position) &#123; return insert(__position, _Tp()); &#125;
+
+  //在指定位置插入n个初始值为x的节点
+  void insert(iterator __pos, size_type __n, const _Tp& __x)
+    &#123; _M_fill_insert(__pos, __n, __x); &#125;
+  void _M_fill_insert(iterator __pos, size_type __n, const _Tp& __x); 
 
 #ifdef __STL_MEMBER_TEMPLATES
   // Check whether it's an integral type.  If so, it's not an iterator.
-  /*这个是某个区间的构造函数，首先判断输入是否为整数_Integral()
-  *采用__type_traits技术
-  */
+  //这里采用__type_traits技术
+ 
+   //在指定位置插入指定范围内的数据
+  //首先判断输入迭代器类型_InputIterator是否为整数类型
   template <class _InputIterator>
-  vector(_InputIterator __first, _InputIterator __last,
-         const allocator_type& __a = allocator_type()) : _Base(__a) &#123;
+  void insert(iterator __pos, _InputIterator __first, _InputIterator __last) &#123;
     typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
-    _M_initialize_aux(__first, __last, _Integral());
+    _M_insert_dispatch(__pos, __first, __last, _Integral());
   &#125;
 
-  template <class _Integer>
-  //若输入为整数，则调用该函数
-  void _M_initialize_aux(_Integer __n, _Integer __value, __true_type) &#123;
-    _M_start = _M_allocate(__n);
-    _M_end_of_storage = _M_start + __n; 
-    _M_finish = uninitialized_fill_n(_M_start, __n, __value);
+  
+  //若输入迭代器类型_InputIterator是为整数类型，调用此函数
+  template<class _Integer>
+  void _M_insert_dispatch(iterator __pos, _Integer __n, _Integer __x,
+                          __true_type) &#123;
+    _M_fill_insert(__pos, (size_type) __n, (_Tp) __x);
   &#125;
 
+  //若输入迭代器类型_InputIterator是不为整数类型，调用此函数
   template <class _InputIterator>
-  //若输入不是整数，则采用Traits技术继续判断迭代器的类型
-  void _M_initialize_aux(_InputIterator __first, _InputIterator __last,
-                         __false_type) &#123;
-    _M_range_initialize(__first, __last, __ITERATOR_CATEGORY(__first));
-  &#125;
+  void _M_insert_dispatch(iterator __pos,
+                          _InputIterator __first, _InputIterator __last,
+                          __false_type);
 
-#else
-  vector(const _Tp* __first, const _Tp* __last,
-         const allocator_type& __a = allocator_type())
-    : _Base(__last - __first, __a) 
-    &#123; _M_finish = uninitialized_copy(__first, __last, _M_start); &#125;
+ #else /* __STL_MEMBER_TEMPLATES */
+  void insert(iterator __position, const _Tp* __first, const _Tp* __last);
+  void insert(iterator __position,
+              const_iterator __first, const_iterator __last);
 #endif /* __STL_MEMBER_TEMPLATES */
+  
+  //在链表头插入节点
+  void push_front(const _Tp& __x) &#123; insert(begin(), __x); &#125;
+  void push_front() &#123;insert(begin());&#125;
+  //在链表尾插入节点
+  void push_back(const _Tp& __x) &#123; insert(end(), __x); &#125;
+  void push_back() &#123;insert(end());&#125;
 
-  ~vector() &#123; destroy(_M_start, _M_finish); &#125;//析构函数
-</code></pre>
-<h2 id="vector的成员函数"><a href="#vector的成员函数" class="headerlink" title="vector的成员函数"></a>vector的成员函数</h2><p>vector的方法，如push_back(x),pop_back(),insert()等等</p>
-<pre class=" language-c++"><code class="language-c++">    /*以下是容器的一些成员函数*/
-  size_type size() const//vector容器大小(已使用空间大小)，即容器内存储元素的个数
-    &#123; return size_type(end() - begin()); &#125;
-  size_type max_size() const//返回可容纳最大元素数
-    &#123; return size_type(-1) / sizeof(_Tp); &#125;
-  size_type capacity() const//vector容器可用空间的大小
-    &#123; return size_type(_M_end_of_storage - begin()); &#125;
-  bool empty() const//判断容器是否为空
-    &#123; return begin() == end(); &#125;
+  //*******************************
+  //**********在指定位置删除节点***********
+  //**********以下是删除节点的公共接口*********
+  /******************************
+    //删除指定位置pos的节点
+    iterator erase( iterator pos );
+    iterator erase( const_iterator pos );
 
-  reference operator[](size_type __n) &#123; return *(begin() + __n); &#125;//返回指定位置的元素
-  const_reference operator[](size_type __n) const &#123; return *(begin() + __n); &#125;
+    //删除指定范围[first,last)的数据节点
+    iterator erase( iterator first, iterator last );
+    iterator erase( const_iterator first, const_iterator last );
+  ******************************/
+  //*******************************
+  //在指定位置position删除节点，并返回直接后继节点的地址
+  iterator erase(iterator __position) &#123;
+      //调整前驱和后继节点的位置
+    _List_node_base* __next_node = __position._M_node->_M_next;
+    _List_node_base* __prev_node = __position._M_node->_M_prev;
+    _Node* __n = (_Node*) __position._M_node;
+    __prev_node->_M_next = __next_node;
+    __next_node->_M_prev = __prev_node;
+    _Destroy(&__n->_M_data);
+    _M_put_node(__n);
+    return iterator((_Node*) __next_node);
+  &#125;
+  //删除两个迭代器之间的节点
+  iterator erase(iterator __first, iterator __last);
+  //清空链表，这里是调用父类的clear()函数
+  void clear() &#123; _Base::clear(); &#125;
 
-#ifdef __STL_THROW_RANGE_ERRORS
-  //若用户要求的空间大于可用空间，抛出错去信息，即越界检查
-  void _M_range_check(size_type __n) const &#123;
-    if (__n >= this->size())
-      __stl_throw_range_error("vector");
+  //调整链表的大小
+  void resize(size_type __new_size, const _Tp& __x);
+  void resize(size_type __new_size) &#123; this->resize(__new_size, _Tp()); &#125;
+
+  //取出第一个数据节点
+  void pop_front() &#123; erase(begin()); &#125;
+  //取出最后一个数据节点
+  void pop_back() &#123; 
+    iterator __tmp = end();
+    erase(--__tmp);
   &#125;
 
-  reference at(size_type __n)//访问指定元素，并且进行越界检查
-    &#123; _M_range_check(__n); return (*this)[__n]; &#125;//访问前，先进行越界检查
-  const_reference at(size_type __n) const
-    &#123; _M_range_check(__n); return (*this)[__n]; &#125;
-#endif /* __STL_THROW_RANGE_ERRORS */
-
-    void reserve(size_type __n) &#123;//改变可用空间内存大小
-    if (capacity() < __n) &#123;
-      const size_type __old_size = size();
-      //重新分配大小为n的内存空间，并把原来数据复制到新分配空间
-      iterator __tmp = _M_allocate_and_copy(__n, _M_start, _M_finish);
-      destroy(_M_start, _M_finish);//释放容器元素对象
-      _M_deallocate(_M_start, _M_end_of_storage - _M_start);//回收原来的内存空间
-      //调整迭代器所指的地址,因为原来迭代器所指的地址已经失效
-      _M_start = __tmp;
-      _M_finish = __tmp + __old_size;
-      _M_end_of_storage = _M_start + __n;
-    &#125;
-  &#125;
-
-  reference front() &#123; return *begin(); &#125;//返回第一个元素
-  const_reference front() const &#123; return *begin(); &#125;
-  reference back() &#123; return *(end() - 1); &#125;//返回容器最后一个元素
-  const_reference back() const &#123; return *(end() - 1); &#125;
-
-  void push_back(const _Tp& __x) &#123;//在最尾端插入元素
-    if (_M_finish != _M_end_of_storage) &#123;//若有可用的内存空间
-      construct(_M_finish, __x);//构造对象
-      ++_M_finish;
-    &#125;
-    else//若没有可用的内存空间,调用以下函数，把x插入到指定位置
-      _M_insert_aux(end(), __x);
-  &#125;
-  void push_back() &#123;
-    if (_M_finish != _M_end_of_storage) &#123;
-      construct(_M_finish);
-      ++_M_finish;
-    &#125;
-    else
-      _M_insert_aux(end());
-  &#125;
-  void swap(vector<_Tp, _Alloc>& __x) &#123;
-      /*交换容器的内容
-      *这里使用的方法是交换迭代器所指的地址
-      */
-    __STD::swap(_M_start, __x._M_start);
-    __STD::swap(_M_finish, __x._M_finish);
-    __STD::swap(_M_end_of_storage, __x._M_end_of_storage);
-  &#125;
-
-  iterator insert(iterator __position, const _Tp& __x) &#123;//把x值插入到指定的位置
-    size_type __n = __position - begin();
-    if (_M_finish != _M_end_of_storage && __position == end()) &#123;
-      construct(_M_finish, __x);
-      ++_M_finish;
-    &#125;
-    else
-      _M_insert_aux(__position, __x);
-    return begin() + __n;
-  &#125;
-  iterator insert(iterator __position) &#123;
-    size_type __n = __position - begin();
-    if (_M_finish != _M_end_of_storage && __position == end()) &#123;
-      construct(_M_finish);
-      ++_M_finish;
-    &#125;
-    else
-      _M_insert_aux(__position);
-    return begin() + __n;
-  &#125;
-
-  void insert (iterator __pos, size_type __n, const _Tp& __x)
-    &#123; //在pos位置连续插入n个初始值为x的元素
-        _M_fill_insert(__pos, __n, __x); &#125;
-
-  void _M_fill_insert (iterator __pos, size_type __n, const _Tp& __x);
-
-  void pop_back() &#123;//取出最尾端元素
-    --_M_finish;
-    destroy(_M_finish);//析构对象
-  &#125;
-  iterator erase(iterator __position) &#123;//擦除指定位置元素
-    if (__position + 1 != end())
-      copy(__position + 1, _M_finish, __position);//后续元素前移一位
-    --_M_finish;
-    destroy(_M_finish);//析构对象
-    return __position;
-  &#125;
-  iterator erase(iterator __first, iterator __last) &#123;//擦除两个迭代器区间的元素
-    iterator __i = copy(__last, _M_finish, __first);//把不擦除的元素前移
-    destroy(__i, _M_finish);//析构对象
-    _M_finish = _M_finish - (__last - __first);//调整finish的所指的位置
-    return __first;
-  &#125;
-
-  void resize(size_type __new_size, const _Tp& __x) &#123;//改变容器中可存储的元素个数，并不会分配新的空间
-    if (__new_size < size()) //若调整后的内存空间比原来的小
-      erase(begin() + __new_size, end());//擦除多余的元素
-    else
-      insert(end(), __new_size - size(), __x);//比原来多余的空间都赋予初值x
-  &#125;
-  void resize(size_type __new_size) &#123; resize(__new_size, _Tp()); &#125;
-  void clear() &#123; erase(begin(), end()); &#125;//清空容器
-     // assign(), a generalized assignment member function.  Two
+public:
+  // assign(), a generalized assignment member function.  Two
   // versions: one that takes a count, and one that takes a range.
   // The range version is a member template, so we dispatch on whether
   // or not the type is an integer.
-
-  /*该函数有两种类型：
+  /***********************************
+  //assign()函数的两个版本原型，功能是在已定义的list容器填充值
     void assign( size_type count, const T& value );
 
     template< class InputIt >
     void assign( InputIt first, InputIt last );
-    */
-
-  //把容器内容替换为n个初始值为value
+  //***********************************
+    例子：
+    #include <list>
+    #include <iostream>
+ 
+    int main()
+    &#123;
+        std::list<char> characters;
+        //若定义characters时并初始化为字符b，下面的填充操作一样有效
+        //std::list<char>characters(5,'b')
+ 
+        characters.assign(5, 'a');
+ 
+        for (char c : characters) &#123;
+            std::cout << c << ' ';
+        &#125;
+ 
+        return 0;
+    &#125;
+    输出结果：a a a a a
+  ***********************************/
+    //这里是第一个版本void assign( size_type count, const T& value );
   void assign(size_type __n, const _Tp& __val) &#123; _M_fill_assign(__n, __val); &#125;
+
+  //这里为什么要把_M_fill_assign这个函数放在public呢？？保护起来不是更好吗？？
   void _M_fill_assign(size_type __n, const _Tp& __val);
 
 #ifdef __STL_MEMBER_TEMPLATES
-  
+
+  //以下是针对assign()函数的第二个版本
+  /*
+    template< class InputIt >
+    void assign( InputIt first, InputIt last );
+    这里有偏特化的现象，判断输入数据类型是否为整数型别
+  */
   template <class _InputIterator>
   void assign(_InputIterator __first, _InputIterator __last) &#123;
     typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
     _M_assign_dispatch(__first, __last, _Integral());
   &#125;
 
+  //若输入数据类型为整数型别，则派送到此函数
   template <class _Integer>
   void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
     &#123; _M_fill_assign((size_type) __n, (_Tp) __val); &#125;
 
-  template <class _InputIter>
-  void _M_assign_dispatch(_InputIter __first, _InputIter __last, __false_type)
-    &#123; _M_assign_aux(__first, __last, __ITERATOR_CATEGORY(__first)); &#125;
-
+  //若输入数据类型不是整数型别，则派送到此函数
   template <class _InputIterator>
-  void _M_assign_aux(_InputIterator __first, _InputIterator __last,
-                     input_iterator_tag);
-
-  template <class _ForwardIterator>
-  void _M_assign_aux(_ForwardIterator __first, _ForwardIterator __last,
-                     forward_iterator_tag); 
+  void _M_assign_dispatch(_InputIterator __first, _InputIterator __last,
+                          __false_type);
 
 #endif /* __STL_MEMBER_TEMPLATES */
+  //assign()函数定义结束
+  //*********************************
+
+protected:
+    //把区间[first,last）的节点数据插入到指定节点position之前,position不能在区间内部
+    //这个函数是list类的protected属性，不是公共接口，只为list类成员服务
+    //为下面拼接函数void splice()服务
+  void transfer(iterator __position, iterator __first, iterator __last) &#123;
+    if (__position != __last) &#123;
+      // Remove [first, last) from its old position.
+      __last._M_node->_M_prev->_M_next     = __position._M_node;
+      __first._M_node->_M_prev->_M_next    = __last._M_node;
+      __position._M_node->_M_prev->_M_next = __first._M_node; 
+
+      // Splice [first, last) into its new position.
+      _List_node_base* __tmp      = __position._M_node->_M_prev;
+      __position._M_node->_M_prev = __last._M_node->_M_prev;
+      __last._M_node->_M_prev     = __first._M_node->_M_prev; 
+      __first._M_node->_M_prev    = __tmp;
+    &#125;
+  &#125;
+
+public:
+    //******************************
+    //***********拼接操作对外接口*************
+    //把链表拼接到当前链表指定位置position之前
+    /*void splice(const_iterator pos, list& other);
+    
+    //把it在链表other所指的位置拼接到当前链表pos之前，it和pos可指向同一链表
+    void splice(const_iterator pos, list& other, const_iterator it);
+
+    //把链表other的节点范围[first,last)拼接在当前链表所指定的位置pos之前
+    //[first,last)和pos可指向同一链表
+    void splice(const_iterator pos, list& other,
+            const_iterator first, const_iterator last);
+    *******************************/
+    //******************************
+    //将链表x拼接到当前链表的指定位置position之前
+    //这里x和*this必须不同，即是两个不同的链表
+  void splice(iterator __position, list& __x) &#123;
+    if (!__x.empty()) 
+      this->transfer(__position, __x.begin(), __x.end());
+  &#125;
+  //将i所指向的节点拼接到position所指位置之前
+  //注意：i和position可以指向同一个链表
+  void splice(iterator __position, list&, iterator __i) &#123;
+    iterator __j = __i;
+    ++__j;
+    //若i和position指向同一个链表，且指向同一位置
+    //或者i和position指向同一个链表，且就在position的直接前驱位置
+    //针对以上这两种情况，不做任何操作
+    if (__position == __i || __position == __j) return;
+    //否则，进行拼接操作
+    this->transfer(__position, __i, __j);
+  &#125;
+  //将范围[first,last)内所有节点拼接到position所指位置之前
+  //注意：[first,last)和position可指向同一个链表，
+  //但是position不能在[first,last)范围之内
+  void splice(iterator __position, list&, iterator __first, iterator __last) &#123;
+    if (__first != __last) 
+      this->transfer(__position, __first, __last);
+  &#125;
+  //以下是成员函数声明，定义在list类外实现
+  //******************************
+  //删除链表中值等于value的所有节点
+  void remove(const _Tp& __value);
+  //删除连续重复的元素节点，使之唯一
+  //注意：是连续的重复元素
+  void unique();
+  //合并两个已排序的链表
+  void merge(list& __x);
+  //反转链表容器的内容
+  void reverse();
+  //按升序排序链表内容
+  void sort();
+
+#ifdef __STL_MEMBER_TEMPLATES
+  template <class _Predicate> void remove_if(_Predicate);
+  template <class _BinaryPredicate> void unique(_BinaryPredicate);
+  template <class _StrictWeakOrdering> void merge(list&, _StrictWeakOrdering);
+  template <class _StrictWeakOrdering> void sort(_StrictWeakOrdering);
+#endif /* __STL_MEMBER_TEMPLATES */
+&#125;;
 </code></pre>
-<p>其中特别的是：iterator erase(iterator __first, iterator __last)函数只是擦除输入迭代器之间的元素，但是没有回收内存空间，只是把内存空间作为备用空间。<br>void insert (iterator __pos, size_type __n, const _Tp&amp; __x)函数插入元素是在指定位置position上连续插入n个初始值为x的元素，根据插入元素个数和可用空间大小的比较，分别进行不同的初始化，详细见源码分析。</p>
-<h2 id="vector的操作符重载"><a href="#vector的操作符重载" class="headerlink" title="vector的操作符重载"></a>vector的操作符重载</h2><p>如 =, !=, ==, &lt;, &gt;等等</p>
-<pre class=" language-c++"><code class="language-c++">template <class _Tp, class _Alloc>
-inline bool //操作符重载，判断两个容器是否相等，即容器大小和容器内容是否都相等
-operator==(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+<h2 id="list容器的操作符重载"><a href="#list容器的操作符重载" class="headerlink" title="list容器的操作符重载"></a>list容器的操作符重载</h2><p>poerator==, &lt;, !=等等</p>
+<pre class=" language-c++"><code class="language-c++">//运算符操作符重载
+template <class _Tp, class _Alloc>
+inline bool 
+operator==(const list<_Tp,_Alloc>& __x, const list<_Tp,_Alloc>& __y)
 &#123;
-  return __x.size() == __y.size() &&
-         equal(__x.begin(), __x.end(), __y.begin());
-  /*STL中equal函数的实现如下：
-    * template<class InputIt1, class InputIt2>
-    * bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2)
-    * &#123;
-    *    for (; first1 != last1; ++first1, ++first2) 
-    *    &#123;
-    *        if (!(*first1 == *first2)) 
-    *        &#123;
-    *            return false;
-    *        &#125;
-    *    &#125;
-    *    return true;
-    * &#125;  
-  */
+  typedef typename list<_Tp,_Alloc>::const_iterator const_iterator;
+  const_iterator __end1 = __x.end();
+  const_iterator __end2 = __y.end();
+
+  const_iterator __i1 = __x.begin();
+  const_iterator __i2 = __y.begin();
+  while (__i1 != __end1 && __i2 != __end2 && *__i1 == *__i2) &#123;
+    ++__i1;
+    ++__i2;
+  &#125;
+  return __i1 == __end1 && __i2 == __end2;
 &#125;
 
 template <class _Tp, class _Alloc>
-inline bool 
-operator<(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
+inline bool operator<(const list<_Tp,_Alloc>& __x,
+                      const list<_Tp,_Alloc>& __y)
 &#123;
-  /*函数原型：
-    template<class InputIt1, class InputIt2>
-    bool lexicographical_compare(InputIt1 first1, InputIt1 last1,
-                             InputIt2 first2, InputIt2 last2)
-    &#123;
-        for ( ; (first1 != last1) && (first2 != last2); first1++, first2++ ) &#123;
-            if (*first1 < *first2) return true;
-            if (*first2 < *first1) return false;
-            &#125;
-        return (first1 == last1) && (first2 != last2);
-    &#125;
-      */
-    return lexicographical_compare(__x.begin(), __x.end(), 
+  return lexicographical_compare(__x.begin(), __x.end(),
                                  __y.begin(), __y.end());
 &#125;
 
 #ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
 
 template <class _Tp, class _Alloc>
-inline void swap(vector<_Tp, _Alloc>& __x, vector<_Tp, _Alloc>& __y)
-&#123;
-  __x.swap(__y);
-&#125;
-
-template <class _Tp, class _Alloc>
-inline bool
-operator!=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+inline bool operator!=(const list<_Tp,_Alloc>& __x,
+                       const list<_Tp,_Alloc>& __y) &#123;
   return !(__x == __y);
 &#125;
 
 template <class _Tp, class _Alloc>
-inline bool
-operator>(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+inline bool operator>(const list<_Tp,_Alloc>& __x,
+                      const list<_Tp,_Alloc>& __y) &#123;
   return __y < __x;
 &#125;
 
 template <class _Tp, class _Alloc>
-inline bool
-operator<=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+inline bool operator<=(const list<_Tp,_Alloc>& __x,
+                       const list<_Tp,_Alloc>& __y) &#123;
   return !(__y < __x);
 &#125;
 
 template <class _Tp, class _Alloc>
-inline bool
-operator>=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y) &#123;
+inline bool operator>=(const list<_Tp,_Alloc>& __x,
+                       const list<_Tp,_Alloc>& __y) &#123;
   return !(__x < __y);
 &#125;
 
-#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
-
+//交换两个链表内容
 template <class _Tp, class _Alloc>
-vector<_Tp,_Alloc>& 
-vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
+inline void 
+swap(list<_Tp, _Alloc>& __x, list<_Tp, _Alloc>& __y)
 &#123;
-  if (&__x != this) &#123;
-    const size_type __xlen = __x.size();
-    if (__xlen > capacity()) &#123;
-      iterator __tmp = _M_allocate_and_copy(__xlen, __x.begin(), __x.end());
-      destroy(_M_start, _M_finish);
-      _M_deallocate(_M_start, _M_end_of_storage - _M_start);
-      _M_start = __tmp;
-      _M_end_of_storage = _M_start + __xlen;
-    &#125;
-    else if (size() >= __xlen) &#123;
-      iterator __i = copy(__x.begin(), __x.end(), begin());
-      destroy(__i, _M_finish);
-    &#125;
-    else &#123;
-      copy(__x.begin(), __x.begin() + size(), _M_start);
-      uninitialized_copy(__x.begin() + size(), __x.end(), _M_finish);
-    &#125;
-    _M_finish = _M_start + __xlen;
-  &#125;
-  return *this;
+  __x.swap(__y);
 &#125;
+
+#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
 </code></pre>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>vector的各种操作其实离不开四个操作，堆内存的申请和释放对象的创建和摧毁</li>
-<li>对vector执行插入删除操作，此时的迭代器是不安全的，需要重新获取，如果引起了新的空间配置 那么指向vector的所有迭代器都会失效。</li>
-<li>当调用erase函数时，size()函数会变化，capacity不会发生变化。</li>
+<li>在list中任何位置进行插入和删除的速度都很快</li>
+<li>链表是一种非连续的结构，当用户要访问下一个元素的时候，迭代器要能够通过当前指向的位置的指针的 next 域，定位到正确访问的下一个位置，其迭代器是智能指针</li>
 </ul>
 <p>参考资料：<br>《STL源码剖析》侯捷<br>各位大佬博客</p>
 
@@ -779,7 +984,7 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2021/05/17/vector/">http://example.com/2021/05/17/vector/</a>
+                    <a href="http://example.com/2021/05/31/list/">http://example.com/2021/05/31/list/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -864,9 +1069,10 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
                 <a href="/2021/05/31/list/">
                     <div class="card-image">
@@ -883,9 +1089,9 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-05-31
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-05-31
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -898,6 +1104,7 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -913,7 +1120,7 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/2021/05/17/vector/">
@@ -946,7 +1153,6 @@ vector<_Tp,_Alloc>::operator=(const vector<_Tp, _Alloc>& __x)
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
