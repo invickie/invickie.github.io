@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>STL容器源码剖析 (priority_queue容器配接器)</title>
+      <link href="2021/06/01/priority-queue/"/>
+      <url>2021/06/01/priority-queue/</url>
+      
+        <content type="html"><![CDATA[<h1 id="STL容器源码剖析-priority-queue容器配接器"><a href="#STL容器源码剖析-priority-queue容器配接器" class="headerlink" title="STL容器源码剖析 (priority_queue容器配接器)"></a>STL容器源码剖析 (priority_queue容器配接器)</h1><p>STL在日程编程应用非常的广泛,之前看到一篇大牛文章说，用C++开发，尽量用容器类+迭代器来代替数组+指针，因为数组+指针容易越界，或者内存泄露，相反，容器类和+迭代器都有大神将底层封装好，使用安全简单。</p><p>priority_queue是拥有优先级的queue，不过它容器内的元素并不是根据加入顺序排列，而是根据用户定义的优先级进行排列。只能在队列尾部加入元素，在头部取出元素。不能遍历容器。priority_queue是基于某种容器作为底部结构的，默认容器是vector容器，用户也可以自己指定容器的类型。参考文档<a href="http://www.cplusplus.com/reference/queue/priority_queue/">priority_queue</a></p><h2 id="priority-queue容器配接器"><a href="#priority-queue容器配接器" class="headerlink" title="priority_queue容器配接器"></a>priority_queue容器配接器</h2><p>由于只是在vector容器基础的接口实现，重点看元素的调整，源码如下</p><pre class=" language-c++"><code class="language-c++">template <class _Tp,           class _Sequence __STL_DEPENDENT_DEFAULT_TMPL(vector<_Tp>),          class _Compare          __STL_DEPENDENT_DEFAULT_TMPL(less<typename _Sequence::value_type>) >class priority_queue &#123;  // requirements:  __STL_CLASS_REQUIRES(_Tp, _Assignable);  __STL_CLASS_REQUIRES(_Sequence, _Sequence);  __STL_CLASS_REQUIRES(_Sequence, _RandomAccessContainer);  typedef typename _Sequence::value_type _Sequence_value_type;  __STL_CLASS_REQUIRES_SAME_TYPE(_Tp, _Sequence_value_type);  __STL_CLASS_BINARY_FUNCTION_CHECK(_Compare, bool, _Tp, _Tp);public:    // priority_queue仅支持对头部和尾部的操作, 所以不定义STL要求的    // pointer, iterator, difference_type   typedef typename _Sequence::value_type      value_type;  typedef typename _Sequence::size_type       size_type;  typedef          _Sequence                  container_type;  typedef typename _Sequence::reference       reference;  typedef typename _Sequence::const_reference const_reference;protected:  _Sequence c;//底层容器，默认为vector，用户可自行指定容器类型  _Compare comp;//优先级决策方式public:    //*******************************    //*    构造函数    //*******************************  priority_queue() : c() &#123;&#125;  explicit priority_queue(const _Compare& __x) :  c(), comp(__x) &#123;&#125;  priority_queue(const _Compare& __x, const _Sequence& __s)     : c(__s), comp(__x)     &#123; make_heap(c.begin(), c.end(), comp); &#125;#ifdef __STL_MEMBER_TEMPLATES  template <class _InputIterator>  priority_queue(_InputIterator __first, _InputIterator __last)     : c(__first, __last) &#123; make_heap(c.begin(), c.end(), comp); &#125;  template <class _InputIterator>  priority_queue(_InputIterator __first,                  _InputIterator __last, const _Compare& __x)    : c(__first, __last), comp(__x)     &#123; make_heap(c.begin(), c.end(), comp); &#125;  template <class _InputIterator>  priority_queue(_InputIterator __first, _InputIterator __last,                 const _Compare& __x, const _Sequence& __s)  : c(__s), comp(__x)  &#123;     c.insert(c.end(), __first, __last);    make_heap(c.begin(), c.end(), comp);  &#125;#else /* __STL_MEMBER_TEMPLATES */  priority_queue(const value_type* __first, const value_type* __last)     : c(__first, __last) &#123; make_heap(c.begin(), c.end(), comp); &#125;  priority_queue(const value_type* __first, const value_type* __last,                  const _Compare& __x)     : c(__first, __last), comp(__x)    &#123; make_heap(c.begin(), c.end(), comp); &#125;  priority_queue(const value_type* __first, const value_type* __last,                  const _Compare& __x, const _Sequence& __c)    : c(__c), comp(__x)   &#123;     c.insert(c.end(), __first, __last);    make_heap(c.begin(), c.end(), comp);  &#125;#endif /* __STL_MEMBER_TEMPLATES */  //判断容器是否为空  bool empty() const &#123; return c.empty(); &#125;  //返回容器元素的个数  size_type size() const &#123; return c.size(); &#125;  //返回优先级最高元素的引用  const_reference top() const &#123; return c.front(); &#125;  //新增元素，并根据优先级调整堆  void push(const value_type& __x) &#123;    __STL_TRY &#123;      c.push_back(__x);       push_heap(c.begin(), c.end(), comp);    &#125;    __STL_UNWIND(c.clear());  &#125;  //弹出优先级最高的元素  void pop() &#123;    __STL_TRY &#123;      pop_heap(c.begin(), c.end(), comp);      c.pop_back();    &#125;    __STL_UNWIND(c.clear());  &#125;&#125;;// no equality is provided__STL_END_NAMESPACE#endif /* __SGI_STL_INTERNAL_QUEUE_H */</code></pre><p>参考资料：<br>《STL源码剖析》侯捷<br>各位大佬博客</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> STL </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> STL, C++ - Markdown </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>STL容器源码剖析 (queue容器配接器)</title>
       <link href="2021/06/01/queue/"/>
       <url>2021/06/01/queue/</url>
