@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="UNP网络编程练习(第一章), 阿克曼的小陀螺">
+    <meta name="keywords" content="UNP网络编程练习(时间获取程序), 阿克曼的小陀螺">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>UNP网络编程练习(第一章) | 阿克曼的小陀螺</title>
+    <title>UNP网络编程练习(时间获取程序) | 阿克曼的小陀螺</title>
     <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/awesome/css/all.css">
@@ -262,7 +262,7 @@
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">UNP网络编程练习(第一章)</h1>
+                    <h1 class="description center-align post-title">UNP网络编程练习(时间获取程序)</h1>
                 </div>
             </div>
         </div>
@@ -323,7 +323,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    238
+                    241
                 </div>
                 
 
@@ -350,7 +350,7 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="UNP网络编程练习-第一章"><a href="#UNP网络编程练习-第一章" class="headerlink" title="UNP网络编程练习(第一章)"></a>UNP网络编程练习(第一章)</h1><p>通过实现书中的demo来加深对网络编程的理解</p>
+                <h1 id="UNP网络编程练习-时间获取程序"><a href="#UNP网络编程练习-时间获取程序" class="headerlink" title="UNP网络编程练习(时间获取程序)"></a>UNP网络编程练习(时间获取程序)</h1><p>通过实现书中的demo来加深对网络编程的理解</p>
 <h2 id="实现环境"><a href="#实现环境" class="headerlink" title="实现环境"></a>实现环境</h2><p>本地虚拟机<br>阿里云服务器</p>
 <h2 id="时间获取程序"><a href="#时间获取程序" class="headerlink" title="时间获取程序"></a>时间获取程序</h2><p>server</p>
 <pre class=" language-c++"><code class="language-c++">#include <time.h>
@@ -451,6 +451,59 @@ int main(int argc, char **argv) &#123;
     exit(0);
 &#125;
 </code></pre>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><ul>
+<li><p>字节排序函数（大小端转换）</p>
+<ul>
+<li>大端：高字节放低地址</li>
+<li>小段：高字节放高地址<br>网络传输采用大端字节序<br>```c++<br>#include &lt;netinet/in.h&gt;</li>
+</ul>
+<p>uint16_t htons( uint16_t host16bitvalue );<br>uint32_t htonl( uint32_t host32bitvalue );</p>
+<pre><code>                  ------------均返回：网络字节序的值
+</code></pre>
+<p>uint16_t ntohs( uint16_t net16bitvalue );<br>uint32_t ntohl( uint32_t net32bitvalue );</p>
+<pre><code>                   ------------均返回：主机字节序的值
+</code></pre>
+<pre><code>测试
+```c++
+#include &lt;stdio.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;sys/socket.h&gt;
+
+int main(int argc, char **argv) &#123;
+  uint32_t    ipAddr;
+  uint16_t    portAddr;
+  struct sockaddr_in    servaddr;
+  char        buff[1024];
+
+  bzero(&amp;servaddr, sizeof(servaddr));
+
+  inet_pton(AF_INET, argv[1], &amp;servaddr.sin_addr);
+  ipAddr = ntohl(servaddr.sin_addr.s_addr);
+  printf(&quot;ipAddr is:%d\n&quot;, ipAddr);
+  bzero(&amp;servaddr, sizeof(servaddr));
+  servaddr.sin_addr.s_addr = htonl(ipAddr);
+  inet_ntop(AF_INET, &amp;servaddr.sin_addr, buff, sizeof(buff));
+  printf(&quot;the ip addr is:%s\n&quot;, buff);
+  printf(&quot;------------\n&quot;);
+  portAddr = htons(9010);
+  printf(&quot;the port 9010 netword port is:%d\n&quot;, portAddr);
+  printf(&quot;the port is:%d\n&quot;, ntohs(portAddr));
+
+  return 0;
+&#125;
+</code></pre>
+<p>结果</p>
+<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ ./test1 127.0.0.1
+ ipAddr is:2130706433
+ the ip addr is:127.0.0.1
+ ------------
+ the port 9010 netword port is:12835
+ the port is:9010
+</code></pre>
+</li>
+<li><p>调用sprintf无法检查目的缓冲区是否溢出，而snprintf要求其第二个参数指定目的缓冲区的大小，因此可以确保该缓冲区不溢出。</p>
+</li>
+</ul>
 <h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><ul>
 <li>本地<br>-server<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc srv.c -o srv
 ygq@ygq-virtual-machine:~/unp/chat1$ ./srv 
@@ -582,17 +635,16 @@ Fri Sep  4 10:30:24 2020
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2021/06/04/unp1/">
+                <a href="/2021/06/04/unp2/">
                     <div class="card-image">
                         
-                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-3z32j3.jpg" class="responsive-img" alt="UNP网络编程练习(第一章)">
+                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-rddgwm.jpg" class="responsive-img" alt="UNP网络编程练习(回显程序)">
                         
-                        <span class="card-title">UNP网络编程练习(第一章)</span>
+                        <span class="card-title">UNP网络编程练习(回显程序)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -602,9 +654,9 @@ Fri Sep  4 10:30:24 2020
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-04
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-04
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -617,7 +669,6 @@ Fri Sep  4 10:30:24 2020
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
@@ -772,7 +823,7 @@ Fri Sep  4 10:30:24 2020
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">8.7k</span>
+                        class="white-color">11.3k</span>
             
             
             

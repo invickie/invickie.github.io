@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="STL容器源码剖析 (stack容器配接器), 阿克曼的小陀螺">
+    <meta name="keywords" content="UNP网络编程练习(回显程序), 阿克曼的小陀螺">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>STL容器源码剖析 (stack容器配接器) | 阿克曼的小陀螺</title>
+    <title>UNP网络编程练习(回显程序) | 阿克曼的小陀螺</title>
     <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/awesome/css/all.css">
@@ -257,12 +257,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-l3zdmp.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-rddgwm.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">STL容器源码剖析 (stack容器配接器)</h1>
+                    <h1 class="description center-align post-title">UNP网络编程练习(回显程序)</h1>
                 </div>
             </div>
         </div>
@@ -284,8 +284,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/STL-C-Markdown/">
-                                <span class="chip bg-color">STL, C++ - Markdown</span>
+                            <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                                <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
                             </a>
                         
                     </div>
@@ -296,8 +296,8 @@
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/STL/" class="post-category">
-                                STL
+                            <a href="/categories/UNP/" class="post-category">
+                                UNP
                             </a>
                         
                     </div>
@@ -309,28 +309,28 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2021-06-01
+                    2021-06-04
                 </div>
                 
 
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
-                    2021-06-01
+                    2021-06-04
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    229
+                    2.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    11 分
                 </div>
                 
 
@@ -350,127 +350,336 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="STL容器源码剖析-stack容器配接器"><a href="#STL容器源码剖析-stack容器配接器" class="headerlink" title="STL容器源码剖析 (stack容器配接器)"></a>STL容器源码剖析 (stack容器配接器)</h1><p>STL在日程编程应用非常的广泛,之前看到一篇大牛文章说，用C++开发，尽量用容器类+迭代器来代替数组+指针，因为数组+指针容易越界，或者内存泄露，相反，容器类和+迭代器都有大神将底层封装好，使用安全简单。</p>
-<p>stack是一种先进后出的数据结构,单向开口，只能在栈顶执行push、pop和top操作，不允许遍历。stack是基于某种容器作为底部结构的，默认容器是deque容器，用户也可以自己指定容器的类型，可以是vector、deque、list，但不可以是map、set</p>
-<h2 id="stack容器配接器"><a href="#stack容器配接器" class="headerlink" title="stack容器配接器"></a>stack容器配接器</h2><p>由于只是在deque容器基础的接口实现，具体细节可看deque源码剖析，stack源码如下</p>
-<pre class=" language-c++"><code class="language-c++">#ifndef __SGI_STL_INTERNAL_STACK_H
-#define __SGI_STL_INTERNAL_STACK_H
-
-#include <sequence_concepts.h>
-
-__STL_BEGIN_NAMESPACE
-
-// Forward declarations of operators == and <, needed for friend declaration.
-//这里默认的底层容器类型是deque容器
-template <class _Tp, 
-          class _Sequence __STL_DEPENDENT_DEFAULT_TMPL(deque<_Tp>) >
-class stack;
-
-template <class _Tp, class _Seq>
-bool operator==(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y);
-
-template <class _Tp, class _Seq>
-bool operator<(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y);
-
-template <class _Tp, class _Sequence>
-class stack &#123;
-
-  // requirements:
-
-  __STL_CLASS_REQUIRES(_Tp, _Assignable);
-  __STL_CLASS_REQUIRES(_Sequence, _BackInsertionSequence);
-  typedef typename _Sequence::value_type _Sequence_value_type;
-  __STL_CLASS_REQUIRES_SAME_TYPE(_Tp, _Sequence_value_type);
-
-#ifdef __STL_MEMBER_TEMPLATES
-  template <class _Tp1, class _Seq1>
-  friend bool operator== (const stack<_Tp1, _Seq1>&,
-                          const stack<_Tp1, _Seq1>&);
-  template <class _Tp1, class _Seq1>
-  friend bool operator< (const stack<_Tp1, _Seq1>&,
-                         const stack<_Tp1, _Seq1>&);
-#else /* __STL_MEMBER_TEMPLATES */
-  friend bool __STD_QUALIFIER
-  operator== __STL_NULL_TMPL_ARGS (const stack&, const stack&);
-  friend bool __STD_QUALIFIER
-  operator< __STL_NULL_TMPL_ARGS (const stack&, const stack&);
-#endif /* __STL_MEMBER_TEMPLATES */
-
-public:
-    // 由于stack仅支持对栈顶元素的操作, 所以不定义STL要求的  
-    // pointer, iterator, difference_type 
-  typedef typename _Sequence::value_type      value_type;
-  typedef typename _Sequence::size_type       size_type;
-  typedef          _Sequence                  container_type;
-
-  typedef typename _Sequence::reference       reference;
-  typedef typename _Sequence::const_reference const_reference;
-protected:
-  _Sequence c;//底层容器类型，默认为deque容器
-public:
-    //下面对stack的维护完全依赖于底层容器的操作
-  stack() : c() &#123;&#125;
-  explicit stack(const _Sequence& __s) : c(__s) &#123;&#125;
-
-  //判断容器是否为空
-  bool empty() const &#123; return c.empty(); &#125;
-  //获取容器的大小，即容器中元素的个数
-  size_type size() const &#123; return c.size(); &#125;
-  //返回栈顶元素的引用
-  reference top() &#123; return c.back(); &#125;
-  const_reference top() const &#123; return c.back(); &#125;
-  //在栈顶追加元素
-  void push(const value_type& __x) &#123; c.push_back(__x); &#125;
-  //弹出栈顶的元素，但不返回任何内容
-  void pop() &#123; c.pop_back(); &#125;
-&#125;;
-
-//下面是依赖于底层容器的操作运算符
-template <class _Tp, class _Seq>
-bool operator==(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return __x.c == __y.c;
-&#125;
-
-template <class _Tp, class _Seq>
-bool operator<(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return __x.c < __y.c;
-&#125;
-
-#ifdef __STL_FUNCTION_TMPL_PARTIAL_ORDER
-
-template <class _Tp, class _Seq>
-bool operator!=(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return !(__x == __y);
-&#125;
-
-template <class _Tp, class _Seq>
-bool operator>(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return __y < __x;
-&#125;
-
-template <class _Tp, class _Seq>
-bool operator<=(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return !(__y < __x);
-&#125;
-
-template <class _Tp, class _Seq>
-bool operator>=(const stack<_Tp,_Seq>& __x, const stack<_Tp,_Seq>& __y)
-&#123;
-  return !(__x < __y);
-&#125;
-
-#endif /* __STL_FUNCTION_TMPL_PARTIAL_ORDER */
-
-__STL_END_NAMESPACE
-
-#endif /* __SGI_STL_INTERNAL_STACK_H */
+                <h1 id="UNP网络编程练习-回显程序"><a href="#UNP网络编程练习-回显程序" class="headerlink" title="UNP网络编程练习(回显程序)"></a>UNP网络编程练习(回显程序)</h1><p>通过实现书中的demo来加深对网络编程的理解</p>
+<h2 id="实现环境"><a href="#实现环境" class="headerlink" title="实现环境"></a>实现环境</h2><p>本地虚拟机<br>阿里云服务器</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><p>TCP三次握手</p>
+<ul>
+<li>服务器必须准备好接受外来的连接。通常通过调用socket,bind和listen这三个函数来完成，我们称之为被动打开。</li>
+<li>客户通过调用connect发起主动打开。这导致客户TCP发送一个SYN（同步）分节，它告诉服务器客户将在（待建立的）连接中发送的数据的初始序列号。通常SYN分节不携带数据，其所在IP数据报只含有一个IP首部，一个TCP首部及可能有的TCP选项。<ul>
+<li>TCP选项之MSS选项：发送SYN的TCP一端使用本选项通告对端它的最大分节大小，也就是它在本连接的每个TCP分节中愿意接受的最大数据量。发送端TCP使用接收端的MSS值作为所发送分节的最大大小。</li>
+</ul>
+</li>
+<li>服务器必须确认（ACK）客户的SYN，同时自己也得发送一个SYN分节，它含有服务器将在同一连接中发送的数据的初始序列号。服务器在单个分节中发送SYN和对客户SYN的ACK</li>
+<li>客户必须确认服务器的SYN。</li>
+</ul>
+<p><img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/tcp%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B.jpg"></p>
+<p>TCP四次挥手</p>
+<ul>
+<li>某个应用进程首先调用close，我们称该端执行主动关闭。该端的TCP于是发送一个FIN分节，表示数据发送完毕。</li>
+<li>接收到这个FIN的对端执行被动关闭。这个FIN由TCP确认。它的接收也作为一个文件结束符（EOF）传递给接收端应用进程（放在已排队等候该应用进程接收的任何其他数据之后），因为FIN的接收意味着接收端应用进程在相应连接上再无额外数据可接收。</li>
+<li>一段时间后，接收到这个文件结束符的应用进程将调用close关闭它的套接字。这导致它的TCP也发送一个FIN。</li>
+<li>接收这个最终FIN的原发送端TCP（即执行主动关闭的那一端）确认这个FIN。<br>note：从执行被动关闭到执行主动关闭（步骤2和步骤3之间）一端流动数据是可能的，这称为半关闭，毕竟当时接收端的套接字并未close掉。</li>
+</ul>
+<p><img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/TCP%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B.jpg"></p>
+<p>TCP状态转换图</p>
+<p><img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/tcp%E7%8A%B6%E6%80%81%E5%9B%BE.png"></p>
+<p><img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/tcp%E8%BF%9E%E6%8E%A5%E5%88%86%E7%BB%84%E4%BA%A4%E6%8D%A2.jpg"></p>
+<p>socket函数</p>
+<ul>
+<li>为了执行网络I/O，一个进程必须做的第一件事就是调用socket函数，指定期望的通信协议类型。<pre class=" language-c++"><code class="language-c++">#include <sys/socket.h>
+int socket( int family, int type, int protocol );
+返回：若成功则为非负描述符，若出错则为-1
 </code></pre>
-<p>参考资料：<br>《STL源码剖析》侯捷<br>各位大佬博客</p>
+</li>
+</ul>
+<p>connect函数</p>
+<ul>
+<li>客户端用connect函数来建立与TCP服务器的连接</li>
+<li>sockfd是由socket函数返回的套接字描述符，第二个，第三个参数分别是一个指向套接字地址结构的指针和该结构的大小。</li>
+<li>客户在调用函数connect前不必非得调用bind函数，因为如果需要的话，内核会确定源IP地址，并选择一个临时端口作为源端口。</li>
+<li>如果是TCP套接字，调用connect函数将激发TCP的三路握手过程，而且仅在连接建立成功或出错时才返回<pre class=" language-c++"><code class="language-c++">#include <sys/socket.h>
+int connect( int sockfd, const struct sockaddr *servaddr, socklen_t addrlen );
+返回：若成功则为0，若出错则为-1
+</code></pre>
+</li>
+</ul>
+<p>bind函数</p>
+<ul>
+<li>bind函数把一个本地协议地址赋予一个套接字。</li>
+<li>第二个参数是一个指向特定与协议的地址结构的指针，第三个参数是该地址结构的长度。</li>
+<li>服务器在启动时捆绑它的众所周知端口（端口用于标识一个进程，如果端口为0，则由内核选择端口,而且必须使用getsockname来返回协议地址来得到内核所选择的这个端口号）</li>
+<li>进程可以把一个特定的IP地址捆绑到它的套接字上（一般都是通配地址，用常量值INADDR_ANY来指定，如htonl( INADDR_ANY)）<br>```c++<br>#include &lt;sys/socket.h&gt;</li>
+</ul>
+<p>int bind( int sockfd, const struct sockaddr *myaddr, socklen_t addrlen );<br>返回：若成功则为0，若出错则为-1</p>
+<pre><code>
+listen函数
+- listen函数仅由TCP服务器调用
+  - 当socket函数创建一个套接字时，它被假设为一个主动套接字，也就是说，它是一个将调用connect发起连接的客户套接字。listen函数把一个未连接的套接字转换成一个被动套接字，指示内核应接受指向该套接字的连接请求。
+  - 第二个参数规定了内核应该为相应套接字排队的最大连接个数。
+```c++
+#include &lt;sys/socket.h&gt;
+int listen( int sockfd, int backlog );
+ 返回：若成功则为0，若出错则为-1
+</code></pre>
+<p>note:理解backlog<br>内核为任何一个给定的监听套接字维护两个队列：</p>
+<ul>
+<li>未完成连接队列：每个这个的SYN分节对应其中一项：已由某个客户发出并到达服务器，而服务器正在等待完成相应的TCP三路握手过程。这些套接字处于SYN_RCVD状态。</li>
+<li>已完成连接队列：每个已完成TCP三路握手过程的客户对应其中一项。这些套接字处于ESTABLISHED状态。</li>
+</ul>
+<p><img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/%E4%B8%A4%E4%B8%AA%E9%98%9F%E5%88%97.png"></p>
+<p>accept函数</p>
+<ul>
+<li>accept函数由TCP服务器调用，用于从已完成连接队列队头返回下一个已完成连接。如果已完成连接队列为空，那么进程被投入睡眠（假定套接字为默认的阻塞方式）</li>
+<li>参数cliaddr和addrlen用来返回已连接的对端进程（客户）的协议地址。addrlen是值-结果参数：调用前，我们将由*addrlen所引用的整数值置为由cliaddr所指的套接字地址结构的长度，返回时，该整数值即为由内核存放在该套接字地址结构内的确切字节数<pre class=" language-c++"><code class="language-c++">#include <sys/socket.h>
+int accept( int sockfd, struct sockaddr *cliaddr, socklen_t *addrlen );
+返回：若成功则为非负描述符，若出错则为-1
+</code></pre>
+</li>
+</ul>
+<p>close函数</p>
+<ul>
+<li>close函数也用来关闭套接字，并终止TCP连接<pre class=" language-c++"><code class="language-c++">#include <unistd.h>
+int close( int sockfd );
+</code></pre>
+</li>
+</ul>
+<p>getsockname和getpeername函数</p>
+<ul>
+<li>这两个函数或者返回与某个套接字关联的本地协议地址(getsockname)，或者返回与某个套接字关联的外地协议地址（getpeername）</li>
+<li>测试函数如下<br>server<br>```c++<br>#include &lt;stdio.h&gt;<br>#include &lt;stdlib.h&gt;<br>#include &lt;time.h&gt;<br>#include &lt;sys/socket.h&gt;<br>#include &lt;sys/types.h&gt;<br>#include &lt;fcntl.h&gt;<br>#include &lt;netinet/in.h&gt;</li>
+</ul>
+<p>#define MAXLINE 1024<br>#define SA struct sockaddr</p>
+<p>int main(int argc, char **argv)<br>{<br>    int        listenfd, connfd;<br>    int        buff[MAXLINE];<br>    pid_t    pid;<br>    time_t    ticks;<br>    struct    sockaddr_in    servaddr;<br>    struct    sockaddr_in    cliaddr;<br>    socklen_t    cliLen;<br>    listenfd = socket(AF_INET, SOCK_STREAM, 0);</p>
+<pre><code>bzero(&amp;servaddr, sizeof(servaddr));
+servaddr.sin_family = AF_INET;
+servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+servaddr.sin_port = htons(9010);
+
+bind(listenfd, (SA *)&amp;servaddr, sizeof(servaddr));
+
+listen(listenfd, 5);
+
+for ( ; ; )&#123;
+    cliLen = sizeof(cliaddr);
+    connfd = accept(listenfd, (SA *)&amp;cliaddr, &amp;cliLen);
+    if ((pid = fork()) == 0)&#123;
+        close(listenfd);
+        ticks = time(NULL);
+        snprintf(buff, sizeof(buff), &quot;%.24s\r\n&quot;, ctime(&amp;ticks));
+        write(connfd, buff, strlen(buff));
+        _exit(0);
+    &#125;
+    if (waitpid(pid, NULL, 0) != pid)&#123;
+        printf(&quot;waitpid error\n&quot;);
+        exit(1);
+    &#125;
+    close(connfd);
+&#125;
+
+return 0;
+</code></pre>
+<p>}</p>
+<pre><code>client
+```c++
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;fcntl.h&gt;
+
+#define MAXLINE 1024
+#define SA struct sockaddr
+
+int main(int argc, char **argv)
+&#123;
+    int        sockfd, n;
+    struct    sockaddr_in    servaddr;
+    char    buff[MAXLINE + 1];
+    struct    sockaddr_in    cliaddr;
+    socklen_t    cliLen;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    bzero(&amp;servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(9010);
+
+    inet_pton(AF_INET, argv[1], &amp;servaddr.sin_addr);
+
+    connect(sockfd, (SA *)&amp;servaddr, sizeof(servaddr));
+    cliLen = sizeof(cliaddr);
+    getsockname(sockfd, (SA *)&amp;cliaddr, &amp;cliLen);
+
+    while ((n = read(sockfd, buff, MAXLINE)) &gt; 0)&#123;
+        buff[n] = &#39;\0&#39;;
+        fputs(buff, stdout);
+    &#125;
+
+    return 0;
+&#125;
+</code></pre>
+<p>当我们分别用gdb调试的时候，发现服务端和客户端的cliaddr的内容是一致的:</p>
+<pre><code>(gdb) p cliaddr
+$2 = &#123;sin_family = 2, sin_port = 42735, sin_addr = &#123;s_addr = 16748343&#125;,sin_zero = &quot;\000\000\000\000\000\000\000&quot;&#125;
+</code></pre>
+<p>处理信号</p>
+<ul>
+<li><p>POSIX信号处理<br>信号就是告知某个进程发生了某个事件的通知，有时也称为软件中断。信号通常是异步发生的，也就是说进程预先不知道信号的准确发生时刻</p>
+</li>
+<li><p>处理SIGCHLD信号<br>设置僵尸状态的目的是维护子进程的信息，以便父进程在以后某个时候获取。如果一个进程终止，而该进程有子进程处于僵尸状态，那么它的所有僵尸子进程的父进程ID将被重置为1（init进程），而僵尸进程出现时间是在子进程终止后，但是父进程尚未读取这些数据之前。处理办法是保证父进程处理这些数据，我们可以通过wait或者waitpid函数来达到这个要求。</p>
+</li>
+</ul>
+<h2 id="回显程序"><a href="#回显程序" class="headerlink" title="回显程序"></a>回显程序</h2><p>server</p>
+<pre class=" language-c++"><code class="language-c++">#include <stdio.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <signal.h>
+#include <errno.h>
+
+#define MAXLINE 1024
+#define SA struct sockaddr
+void sig_chld(int signo);
+typedef void Sigfunc(int);
+Sigfunc *Signal(int signo, Sigfunc *func);
+void str_echo(int sockfd);
+
+int main(int argc, char **argv)
+&#123;
+    int        listenfd, connfd;
+    pid_t    childpid;
+    socklen_t    clilen;
+    struct    sockaddr_in    servaddr, cliaddr;
+
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(9010);
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    bind(listenfd, (SA *)&servaddr, sizeof(servaddr));
+
+    listen(listenfd, 5);
+
+    Signal(SIGCHLD, sig_chld);
+
+    for ( ; ; )&#123;
+        clilen = sizeof(cliaddr);
+        if ((connfd = accept(listenfd, (SA *)&cliaddr, &clilen)) < 0)&#123;
+            if (errno == EINTR)
+                continue;
+            else&#123;
+                printf("accept error\n");
+                exit(-1);
+            &#125;
+        &#125;
+        if ((childpid = fork()) == 0)&#123;
+            close(listenfd);
+            str_echo(connfd);
+            exit(0);
+        &#125;
+
+        close(connfd);
+    &#125;
+
+    return 0;
+&#125;
+void sig_chld(int signo)
+&#123;
+    pid_t    pid;
+    int        stat;
+
+    while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
+        printf("child %d terminated\n", pid);
+
+    return;
+&#125;
+Sigfunc *Signal(int signo, Sigfunc *func)
+&#123;
+    struct    sigaction act, oact;
+    act.sa_handler = func;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if (signo == SIGALRM)&#123;
+#ifdef SA_INTERRUPT
+        act.sa_flags |= SA_INTERRUPT;
+#endif
+    &#125; else &#123;
+        #ifdef SA_RESTART
+        act.sa_flags |= SA_RESTART;
+#endif
+    &#125;
+
+    if (sigaction(signo, &act, &oact) < 0)
+        return (SIG_ERR);
+
+    return (oact.sa_handler);
+&#125;
+void str_echo(int sockfd)
+&#123;
+    char        buff[MAXLINE];
+    int            n;
+
+    for ( ; ; )&#123;
+        if ((n = read(sockfd, buff, MAXLINE)) > 0)&#123;
+            buff[n] = '\0';
+            write(sockfd, buff, n);
+        &#125;
+        else if (n < 0 && errno == EINTR)
+            continue;
+        else if (n < 0)&#123;
+            printf("str_echo:read error\n");
+            return;
+        &#125;
+        else if (n == 0)&#123;
+            break;
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+<p>client</p>
+<pre class=" language-c++"><code class="language-c++">#include <stdio.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+
+#define MAXLINE 1024
+#define SA struct sockaddr
+
+void str_cli(FILE *fp, int sockfd);
+int main(int argc, char **argv)
+&#123;
+    int        sockfd[5], n;
+    struct    sockaddr_in    servaddr;
+    struct    sockaddr_in    cliaddr;
+    int        i;
+    for (i = 0; i < 5; i++)&#123;
+        sockfd[i] = socket(AF_INET, SOCK_STREAM, 0);
+
+        bzero(&servaddr, sizeof(servaddr));
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(9010);
+
+        inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
+
+        connect(sockfd[i], (SA *)&servaddr, sizeof(servaddr));
+    &#125;
+
+    str_cli(stdin, sockfd[0]);
+    return 0;
+&#125;
+void str_cli(FILE *fp, int sockfd)
+&#123;
+    char        sendline[MAXLINE], recvline[MAXLINE];
+
+    while (fgets(sendline, MAXLINE, fp) != NULL)&#123;
+        write(sockfd, sendline, strlen(sendline));
+        if (read(sockfd, recvline, MAXLINE) == 0)&#123;
+            printf("str_cli:server terminated prematurely\n");
+            return;
+        &#125;
+        fputs(recvline, stdout);
+    &#125;
+&#125;
+</code></pre>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>server</p>
+<pre><code>root@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart5# ./srv
+</code></pre>
+<p>client</p>
+<pre><code>root@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart5# ./cli 127.0.0.1
+hello world
+hello world
+</code></pre>
+<p>参考资料：<br>UNIX网络编程卷1 第3版</p>
 
                 
             </div>
@@ -497,7 +706,7 @@ __STL_END_NAMESPACE
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2021/06/01/stack/">http://example.com/2021/06/01/stack/</a>
+                    <a href="http://example.com/2021/06/04/unp2/">http://example.com/2021/06/04/unp2/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -535,8 +744,8 @@ __STL_END_NAMESPACE
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/STL-C-Markdown/">
-                                    <span class="chip bg-color">STL, C++ - Markdown</span>
+                                <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                                    <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
                                 </a>
                             
                         </div>
@@ -582,16 +791,17 @@ __STL_END_NAMESPACE
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2021/06/01/queue/">
+                <a href="/2021/06/04/unp2/">
                     <div class="card-image">
                         
-                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-8oejxo.png" class="responsive-img" alt="STL容器源码剖析 (queue容器配接器)">
+                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-rddgwm.jpg" class="responsive-img" alt="UNP网络编程练习(回显程序)">
                         
-                        <span class="card-title">STL容器源码剖析 (queue容器配接器)</span>
+                        <span class="card-title">UNP网络编程练习(回显程序)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -601,26 +811,27 @@ __STL_END_NAMESPACE
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-01
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-04
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/STL/" class="post-category">
-                                    STL
+                            <a href="/categories/UNP/" class="post-category">
+                                    UNP
                                 </a>
                             
                             
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/STL-C-Markdown/">
-                        <span class="chip bg-color">STL, C++ - Markdown</span>
+                    <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                        <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
                     </a>
                     
                 </div>
@@ -634,12 +845,12 @@ __STL_END_NAMESPACE
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2021/06/01/deque/">
+                <a href="/2021/06/04/unp1/">
                     <div class="card-image">
                         
-                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-k7zdm7.jpg" class="responsive-img" alt="STL容器源码剖析 (deque)">
+                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-3z32j3.jpg" class="responsive-img" alt="UNP网络编程练习(时间获取程序)">
                         
-                        <span class="card-title">STL容器源码剖析 (deque)</span>
+                        <span class="card-title">UNP网络编程练习(时间获取程序)</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -650,14 +861,14 @@ __STL_END_NAMESPACE
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-01
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-04
                             </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
                             
-                            <a href="/categories/STL/" class="post-category">
-                                    STL
+                            <a href="/categories/UNP/" class="post-category">
+                                    UNP
                                 </a>
                             
                             
@@ -667,8 +878,8 @@ __STL_END_NAMESPACE
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/STL-C-Markdown/">
-                        <span class="chip bg-color">STL, C++ - Markdown</span>
+                    <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                        <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
                     </a>
                     
                 </div>
