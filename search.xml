@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>UNP网络编程练习(第一章)</title>
+      <link href="2021/06/04/unp1/"/>
+      <url>2021/06/04/unp1/</url>
+      
+        <content type="html"><![CDATA[<h1 id="UNP网络编程练习-第一章"><a href="#UNP网络编程练习-第一章" class="headerlink" title="UNP网络编程练习(第一章)"></a>UNP网络编程练习(第一章)</h1><p>通过实现书中的demo来加深对网络编程的理解</p><h2 id="实现环境"><a href="#实现环境" class="headerlink" title="实现环境"></a>实现环境</h2><p>本地虚拟机<br>阿里云服务器</p><h2 id="时间获取程序"><a href="#时间获取程序" class="headerlink" title="时间获取程序"></a>时间获取程序</h2><p>server</p><pre class=" language-c++"><code class="language-c++">#include <time.h>#include <stdio.h>#include <sys/types.h>#include <sys/socket.h>#include <netinet/in.h>#include <stdlib.h>#include <fcntl.h>#define SA struct sockaddr#define MAXLINE 1024int main() &#123;    int listenfd, connfd;    struct sockaddr_in servaddr;    char buff[MAXLINE];    time_t ticks;    pid_t pid;    listenfd = socket(AF_INET, SOCK_STREAM, 0);    bzero(&servaddr, sizeof(servaddr));    servaddr.sin_family = AF_INET;    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);    servaddr.sin_port = htons(9010);    bind (listenfd, (SA*)& servaddr, sizeof(servaddr));    listen(listenfd, 5);    for( ; ; ) &#123;        connfd = accept(listenfd, (SA*)NULL, NULL);        pid = fork();        if (0 == pid) &#123;            ticks = time(NULL);            snprintf(buff, sizeof(buff), "%24s\r\n", ctime(&ticks));            write(connfd, buff, strlen(buff));            exit(1);        &#125;        if (waitpid(pid, NULL, 0) != pid) &#123;            printf("waitpid error");            exit(1);        &#125;        close(connfd);    &#125;    return 0;&#125;   </code></pre><p>client</p><pre class=" language-c++"><code class="language-c++">#include <stdio.h>#include <sys/types.h>#include <sys/socket.h>#include <netinet/in.h>#include <stdlib.h>#define SA struct sockaddr#define MAXLINE 1024int main(int argc, char **argv) &#123;    int sockfd, n;    char recvline[MAXLINE + 1];    struct sockaddr_in servaddr;        if (argc != 2) &#123;        printf("usage:a.out <IPaddress>");        exit(1);    &#125;    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) &#123;        printf("socket error\n");        exit(1);    &#125;    bzero(&servaddr, sizeof(servaddr));    servaddr.sin_family = AF_INET;    servaddr.sin_port = htons(9010);    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0) &#123;        printf("inet_pton error for %s", argv[1]);        exit(1);    &#125;    if (connect(sockfd, (SA*)& servaddr, sizeof(servaddr)) < 0) &#123;        printf("connect error\n");        exit(1);    &#125;    while ((n = read(sockfd, recvline, MAXLINE)) > 0) &#123;        recvline[n] = 0;        if (fputs(recvline, stdout) == EOF) &#123;            printf("fputs error\n");            exit(1);        &#125;    &#125;    if (n < 0) &#123;        printf("read error\n");        exit(1);    &#125;    exit(0);&#125;</code></pre><h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><ul><li>本地<br>-server<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc srv.c -o srvygq@ygq-virtual-machine:~/unp/chat1$ ./srv </code></pre>-client<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc cli.c -o cliygq@ygq-virtual-machine:~/unp/chat1$ ./cli 127.0.0.1Fri Sep  4 10:14:14 2020</code></pre></li><li>云服务器(本地为client)<br>-server<pre><code>root@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart1# gcc srv.c -o srvroot@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart1# ./srv </code></pre>-client<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc cli.c -o cliygq@ygq-virtual-machine:~/unp/chat1$ ./cli 182.258.165.464(假的，别搞我)Fri Sep  4 10:30:24 2020</code></pre></li></ul><p>注意测试时保证端口没被占用</p><p>参考资料：<br>UNIX网络编程卷1 第3版</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> UNP </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> UNP, 网络编程 - Markdown </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>STL容器源码剖析 (priority_queue容器配接器)</title>
       <link href="2021/06/01/priority-queue/"/>
       <url>2021/06/01/priority-queue/</url>

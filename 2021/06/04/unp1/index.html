@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="标签, 阿克曼的小陀螺">
+    <meta name="keywords" content="UNP网络编程练习(第一章), 阿克曼的小陀螺">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>标签 | 阿克曼的小陀螺</title>
+    <title>UNP网络编程练习(第一章) | 阿克曼的小陀螺</title>
     <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/awesome/css/all.css">
@@ -253,116 +253,461 @@
 
 </header>
 
-    <div class="bg-cover pd-header about-cover">
-    <div class="container">
-    <div class="row">
-    <div class="col s10 offset-s1 m8 offset-m2 l8 offset-l2">
-        <div class="brand">
-            <div class="title center-align">
-                
-                小陀螺
-                
-            </div>
+    
 
-            <div class="description center-align">
-                
-                <span id="subtitle"></span>
-                <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
-                <script>
-                    var typed = new Typed("#subtitle", {
-                        strings: [ 
-                            
-                                "从来没有真正的绝境, 只有心灵的迷途",
-                            
-                                "Never really desperate, only the lost of the soul",
-                            
-                        ],
-                        startDelay: 300,
-                        typeSpeed: 100,
-                        loop: true,
-                        backSpeed: 50,
-                        showCursor: true
-                    });
-                </script>
-                
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-3z32j3.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">UNP网络编程练习(第一章)</h1>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 
-<script>
-    // 每天切换 banner 图.  Switch banner image every day.
-    var bannerUrl = "https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/medias/banner/" + new Date().getDay() + '.jpg';
-    $('.bg-cover').css('background-image', 'url(' + bannerUrl + ')');
-</script>
 
 
+<main class="container content">
+
+    
+    <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                                <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/UNP/" class="post-category">
+                                UNP
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2021-06-04
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2021-06-04
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    238
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    1 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="UNP网络编程练习-第一章"><a href="#UNP网络编程练习-第一章" class="headerlink" title="UNP网络编程练习(第一章)"></a>UNP网络编程练习(第一章)</h1><p>通过实现书中的demo来加深对网络编程的理解</p>
+<h2 id="实现环境"><a href="#实现环境" class="headerlink" title="实现环境"></a>实现环境</h2><p>本地虚拟机<br>阿里云服务器</p>
+<h2 id="时间获取程序"><a href="#时间获取程序" class="headerlink" title="时间获取程序"></a>时间获取程序</h2><p>server</p>
+<pre class=" language-c++"><code class="language-c++">#include <time.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+#define SA struct sockaddr
+#define MAXLINE 1024
+
+int main() &#123;
+    int listenfd, connfd;
+    struct sockaddr_in servaddr;
+    char buff[MAXLINE];
+    time_t ticks;
+    pid_t pid;
+
+    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(9010);
+
+    bind (listenfd, (SA*)& servaddr, sizeof(servaddr));
+    listen(listenfd, 5);
+
+    for( ; ; ) &#123;
+        connfd = accept(listenfd, (SA*)NULL, NULL);
+        pid = fork();
+        if (0 == pid) &#123;
+            ticks = time(NULL);
+            snprintf(buff, sizeof(buff), "%24s\r\n", ctime(&ticks));
+            write(connfd, buff, strlen(buff));
+            exit(1);
+        &#125;
+        if (waitpid(pid, NULL, 0) != pid) &#123;
+            printf("waitpid error");
+            exit(1);
+        &#125;
+        close(connfd);
+    &#125;
+    return 0;
+&#125;   
+</code></pre>
+<p>client</p>
+<pre class=" language-c++"><code class="language-c++">#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+
+#define SA struct sockaddr
+#define MAXLINE 1024
+int main(int argc, char **argv) &#123;
+    int sockfd, n;
+    char recvline[MAXLINE + 1];
+    struct sockaddr_in servaddr;
+    
+    if (argc != 2) &#123;
+        printf("usage:a.out <IPaddress>");
+        exit(1);
+    &#125;
+
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) &#123;
+        printf("socket error\n");
+        exit(1);
+    &#125;
+
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(9010);
+
+    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) <= 0) &#123;
+        printf("inet_pton error for %s", argv[1]);
+        exit(1);
+    &#125;
+
+    if (connect(sockfd, (SA*)& servaddr, sizeof(servaddr)) < 0) &#123;
+        printf("connect error\n");
+        exit(1);
+    &#125;
+
+    while ((n = read(sockfd, recvline, MAXLINE)) > 0) &#123;
+        recvline[n] = 0;
+        if (fputs(recvline, stdout) == EOF) &#123;
+            printf("fputs error\n");
+            exit(1);
+        &#125;
+    &#125;
+    if (n < 0) &#123;
+        printf("read error\n");
+        exit(1);
+    &#125;
+    exit(0);
+&#125;
+</code></pre>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><ul>
+<li>本地<br>-server<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc srv.c -o srv
+ygq@ygq-virtual-machine:~/unp/chat1$ ./srv 
+</code></pre>
+-client<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc cli.c -o cli
+ygq@ygq-virtual-machine:~/unp/chat1$ ./cli 127.0.0.1
+Fri Sep  4 10:14:14 2020
+</code></pre>
+</li>
+<li>云服务器(本地为client)<br>-server<pre><code>root@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart1# gcc srv.c -o srv
+root@iZ2ze8jni9rk9rkg76dslmZ:~/home/unp/chart1# ./srv 
+</code></pre>
+-client<pre><code>ygq@ygq-virtual-machine:~/unp/chat1$ gcc cli.c -o cli
+ygq@ygq-virtual-machine:~/unp/chat1$ ./cli 182.258.165.464(假的，别搞我)
+Fri Sep  4 10:30:24 2020
+</code></pre>
+</li>
+</ul>
+<p>注意测试时保证端口没被占用</p>
+<p>参考资料：<br>UNIX网络编程卷1 第3版</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">小陀螺</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2021/06/04/unp1/">http://example.com/2021/06/04/unp1/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">小陀螺</a>
+                    !
+                </span>
+            </div>
+        
     </div>
-</div>
 
-<main class="content">
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                                    <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/share/js/social-share.min.js"></script>
+    
 
     
 
-<div id="tags" class="container chip-container">
-    <div class="card">
-        <div class="card-content">
-            <div class="tag-title center-align">
-                <i class="fas fa-tags"></i>&nbsp;&nbsp;文章标签
+</div>
+
+                </div>
             </div>
-            <div class="tag-chips">
-                
-                
-                <a href="/tags/STL-C-Markdown/" title="STL, C++ - Markdown: 6">
-                    <span class="chip center-align waves-effect waves-light
-                             chip-default "
-                            data-tagname="STL, C++ - Markdown" style="background-color: #F9EBEA;">STL, C++ - Markdown
-                        <span class="tag-length">6</span>
-                    </span>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
+            <div class="card">
+                <a href="/2021/06/04/unp1/">
+                    <div class="card-image">
+                        
+                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-3z32j3.jpg" class="responsive-img" alt="UNP网络编程练习(第一章)">
+                        
+                        <span class="card-title">UNP网络编程练习(第一章)</span>
+                    </div>
                 </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-04
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/UNP/" class="post-category">
+                                    UNP
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+
                 
-                
-                <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/" title="UNP, 网络编程 - Markdown: 1">
-                    <span class="chip center-align waves-effect waves-light
-                             chip-default "
-                            data-tagname="UNP, 网络编程 - Markdown" style="background-color: #F5EEF8;">UNP, 网络编程 - Markdown
-                        <span class="tag-length">1</span>
-                    </span>
-                </a>
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/UNP-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Markdown/">
+                        <span class="chip bg-color">UNP, 网络编程 - Markdown</span>
+                    </a>
+                    
+                </div>
                 
             </div>
         </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2021/06/01/priority-queue/">
+                    <div class="card-image">
+                        
+                        <img src="https://tuchuang-1300238575.cos.ap-beijing.myqcloud.com/myblog/wallhaven-1k12z9.png" class="responsive-img" alt="STL容器源码剖析 (priority_queue容器配接器)">
+                        
+                        <span class="card-title">STL容器源码剖析 (priority_queue容器配接器)</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-01
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/STL/" class="post-category">
+                                    STL
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/STL-C-Markdown/">
+                        <span class="chip bg-color">STL, C++ - Markdown</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
     </div>
+</article>
+
 </div>
 
-    
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/jqcloud/jqcloud.css">
-<style type="text/css">
-    #tag-wordcloud {
-        width: 100%;
-        height: 300px;
-    }
-</style>
 
-<div class="container" data-aos="fade-up">
-    <div class="card">
-        <div id="tag-wordcloud" class="card-content"></div>
-    </div>
-</div>
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/jqcloud/jqcloud-1.0.4.min.js"></script>
-<script type="text/javascript">
-    
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/codeBlock/codeBlockFuction.js"></script>
 
-    $('#tag-wordcloud').jQCloud([{"text":"STL, C++ - Markdown","weight":6,"link":"/tags/STL-C-Markdown/"},{"text":"UNP, 网络编程 - Markdown","weight":1,"link":"/tags/UNP-网络编程-Markdown/"}], {
-        autoResize: true
-    });
-</script>
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/invickie/invickie.github.io/libs/codeBlock/codeShrink.js"></script>
+
 
     
 
 </main>
+
+
 
 
     <footer class="page-footer bg-color">
